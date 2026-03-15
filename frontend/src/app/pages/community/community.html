@@ -1,0 +1,71 @@
+<div class="page">
+  <div class="page-header">
+    <div><h1>Community Feed</h1><p class="sub">Celebrate wins, inspire others.</p></div>
+    <button class="btn-primary" (click)="showForm.update(v => !v)">{{ showForm() ? '✕ Cancel' : '🎉 Share Achievement' }}</button>
+  </div>
+
+  @if (showForm()) {
+    <div class="form-card">
+      <h3>Share your achievement</h3>
+      <form (ngSubmit)="submit()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" [(ngModel)]="form.authorName" name="authorName" placeholder="Your name" />
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select [(ngModel)]="form.category" name="category">
+              @for (c of categories; track c) { <option [value]="c">{{ c }}</option> }
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Habit Name *</label>
+          <input type="text" [(ngModel)]="form.habitName" name="habitName" placeholder="e.g. Morning run" />
+        </div>
+        <div class="form-group">
+          <label>Message *</label>
+          <textarea [(ngModel)]="form.message" name="message" rows="3" placeholder="Share how it went..."></textarea>
+        </div>
+        <button type="submit" class="btn-submit" [disabled]="submitting()">{{ submitting() ? 'Posting...' : 'Post' }}</button>
+      </form>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div></div>
+  } @else if (posts().length === 0) {
+    <div class="empty-state"><div class="empty-icon">💬</div><h3>No posts yet</h3><p>Complete a habit to automatically appear here!</p></div>
+  } @else {
+    <div class="feed">
+      @for (post of posts(); track post._id) {
+        <div class="post-card" [class.completion-card]="post.type === 'completion'">
+          @if (post.type === 'completion') {
+            <div class="completion-banner">🏆 Habit Completed!</div>
+          }
+          <div class="post-header">
+            <div class="avatar" [class.completion-avatar]="post.type === 'completion'">
+              {{ post.authorName ? post.authorName.charAt(0).toUpperCase() : '?' }}
+            </div>
+            <div>
+              <span class="post-author">{{ post.authorName || 'Anonymous' }}</span>
+              <span class="post-time">{{ timeAgo(post.createdAt) }}</span>
+            </div>
+            <span class="post-cat">{{ post.category }}</span>
+          </div>
+          <div class="post-habit">{{ post.type === 'completion' ? '✅' : '🏆' }} {{ post.habitName }}</div>
+          <p class="post-msg">{{ post.message }}</p>
+          <div class="post-reactions">
+            <button class="react-btn" [class.active]="hasReacted(post, 'like')" (click)="react(post, 'like')">
+              👍 {{ countReactions(post, 'like') }}
+            </button>
+            <button class="react-btn" [class.active]="hasReacted(post, 'motivate')" (click)="react(post, 'motivate')">
+              💪 {{ countReactions(post, 'motivate') }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

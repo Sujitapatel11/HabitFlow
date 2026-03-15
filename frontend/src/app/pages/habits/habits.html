@@ -1,0 +1,62 @@
+<div class="page">
+  <div class="page-header">
+    <div><h1>My Habits</h1><p class="sub">Build consistency, one day at a time.</p></div>
+    <button class="btn-primary" (click)="showForm.update(v => !v)">{{ showForm() ? '✕ Cancel' : '+ Add Habit' }}</button>
+  </div>
+
+  @if (error()) { <div class="error-banner">{{ error() }}</div> }
+
+  @if (showForm()) {
+    <div class="form-card">
+      <h3>New Habit</h3>
+      <form (ngSubmit)="submit()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Name *</label>
+            <input type="text" [(ngModel)]="form.name" name="name" placeholder="e.g. Morning run" />
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select [(ngModel)]="form.category" name="category">
+              @for (c of categories; track c) { <option [value]="c">{{ c }}</option> }
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" [(ngModel)]="form.description" name="description" placeholder="Optional note..." />
+        </div>
+        <button type="submit" class="btn-submit" [disabled]="submitting()">{{ submitting() ? 'Saving...' : 'Create Habit' }}</button>
+      </form>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div></div>
+  } @else if (habits().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🌱</div>
+      <h3>No habits yet</h3>
+      <p>Click "+ Add Habit" to get started.</p>
+    </div>
+  } @else {
+    <div class="habits-grid">
+      @for (h of habits(); track h._id) {
+        <div class="habit-card" [class.completed]="h.completed">
+          <div class="card-top">
+            <span class="cat-tag" [style.background]="getCategoryColor(h.category)+'20'" [style.color]="getCategoryColor(h.category)">{{ h.category }}</span>
+            <span class="streak">🔥 {{ h.streak }} days</span>
+          </div>
+          <h3 [class.strike]="h.completed">{{ h.name }}</h3>
+          @if (h.description) { <p class="desc">{{ h.description }}</p> }
+          <div class="card-footer">
+            <button class="btn-toggle" [class.undo]="h.completed" (click)="toggle(h)">
+              {{ h.completed ? '↩ Undo' : '✓ Complete' }}
+            </button>
+            <button class="btn-del" (click)="delete(h._id)">🗑</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

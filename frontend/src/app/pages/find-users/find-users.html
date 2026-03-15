@@ -1,0 +1,178 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Find People 🤝</h1>
+      <p class="sub">Discover users with similar goals and build your network.</p>
+    </div>
+  </div>
+
+    <div class="tabs">
+      <button class="tab" [class.active]="activeTab() === 'similar'" (click)="activeTab.set('similar')">
+        Similar Goals
+        @if (similarUsers().length > 0) { <span class="tab-badge">{{ similarUsers().length }}</span> }
+      </button>
+      <button class="tab" [class.active]="activeTab() === 'all'" (click)="activeTab.set('all')">
+        All Users
+        @if (allUsers().length > 0) { <span class="tab-badge">{{ allUsers().length }}</span> }
+      </button>
+      <button class="tab" [class.active]="activeTab() === 'connections'" (click)="activeTab.set('connections')">
+        My Connections
+        @if (myConnections().length > 0) { <span class="tab-badge">{{ myConnections().length }}</span> }
+      </button>
+      <button class="tab" [class.active]="activeTab() === 'pending'" (click)="activeTab.set('pending')">
+        Pending
+        @if (pendingRequests().length > 0) { <span class="tab-badge pending">{{ pendingRequests().length }}</span> }
+      </button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+    } @else {
+
+      @if (activeTab() === 'similar') {
+        @if (similarUsers().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">🎯</div>
+            <h3>No similar users yet</h3>
+            <p>Be the first with your goal category, or check All Users.</p>
+          </div>
+        } @else {
+          <div class="user-grid">
+            @for (user of similarUsers(); track user._id) {
+              <div class="user-card">
+                <div class="user-avatar" [style.background]="getCategoryColor(user.goalCategory)">
+                  {{ user.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="user-info">
+                  <h3 class="user-name">{{ user.name }}</h3>
+                  <span class="goal-tag" [style.background]="getCategoryColor(user.goalCategory) + '22'" [style.color]="getCategoryColor(user.goalCategory)">
+                    {{ user.goalCategory }}
+                  </span>
+                  <div class="user-meta">
+                    <span>🔥 {{ user.streak }} day streak</span>
+                    <span>📅 {{ getJoinDate(user.createdAt) }}</span>
+                  </div>
+                  @if (user.bio) { <p class="user-bio">{{ user.bio }}</p> }
+                </div>
+                <div class="card-action">
+                  @if (getStatus(user._id) === 'accepted') {
+                    <button class="btn-connected" disabled>✓ Connected</button>
+                  } @else if (getStatus(user._id) === 'pending') {
+                    <button class="btn-pending" disabled>⏳ Pending</button>
+                  } @else {
+                    <button class="btn-connect" (click)="connect(user)">Connect</button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @if (activeTab() === 'all') {
+        @if (allUsers().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h3>No other users yet</h3>
+            <p>Share HabitFlow with friends to grow the community.</p>
+          </div>
+        } @else {
+          <div class="user-grid">
+            @for (user of allUsers(); track user._id) {
+              <div class="user-card">
+                <div class="user-avatar" [style.background]="getCategoryColor(user.goalCategory)">
+                  {{ user.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="user-info">
+                  <h3 class="user-name">{{ user.name }}</h3>
+                  <span class="goal-tag" [style.background]="getCategoryColor(user.goalCategory) + '22'" [style.color]="getCategoryColor(user.goalCategory)">
+                    {{ user.goalCategory }}
+                  </span>
+                  <div class="user-meta">
+                    <span>🔥 {{ user.streak }} day streak</span>
+                    <span>📅 {{ getJoinDate(user.createdAt) }}</span>
+                  </div>
+                  @if (user.bio) { <p class="user-bio">{{ user.bio }}</p> }
+                </div>
+                <div class="card-action">
+                  @if (getStatus(user._id) === 'accepted') {
+                    <button class="btn-connected" disabled>✓ Connected</button>
+                  } @else if (getStatus(user._id) === 'pending') {
+                    <button class="btn-pending" disabled>⏳ Pending</button>
+                  } @else {
+                    <button class="btn-connect" (click)="connect(user)">Connect</button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @if (activeTab() === 'connections') {
+        @if (myConnections().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">🤝</div>
+            <h3>No connections yet</h3>
+            <p>Send connection requests to people you'd like to follow.</p>
+          </div>
+        } @else {
+          <div class="user-grid">
+            @for (conn of myConnections(); track conn.connectionId) {
+              <div class="user-card connected">
+                <div class="user-avatar" [style.background]="getCategoryColor(conn.user?.goalCategory || 'Other')">
+                  {{ (conn.user?.name || '?').charAt(0).toUpperCase() }}
+                </div>
+                <div class="user-info">
+                  <h3 class="user-name">{{ conn.user?.name }}</h3>
+                  <span class="goal-tag" [style.background]="getCategoryColor(conn.user?.goalCategory || 'Other') + '22'" [style.color]="getCategoryColor(conn.user?.goalCategory || 'Other')">
+                    {{ conn.user?.goalCategory }}
+                  </span>
+                  <div class="user-meta">
+                    <span>🔥 {{ conn.user?.streak || 0 }} day streak</span>
+                  </div>
+                </div>
+                <div class="card-action">
+                  <button class="btn-connected" disabled>✓ Connected</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @if (activeTab() === 'pending') {
+        @if (pendingRequests().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">📬</div>
+            <h3>No pending requests</h3>
+            <p>When someone sends you a connection request, it'll appear here.</p>
+          </div>
+        } @else {
+          <div class="user-grid">
+            @for (req of pendingRequests(); track req._id) {
+              <div class="user-card">
+                <div class="user-avatar" [style.background]="getCategoryColor(req.senderId?.goalCategory || 'Other')">
+                  {{ (req.senderId?.name || '?').charAt(0).toUpperCase() }}
+                </div>
+                <div class="user-info">
+                  <h3 class="user-name">{{ req.senderId?.name }}</h3>
+                  <span class="goal-tag" [style.background]="getCategoryColor(req.senderId?.goalCategory || 'Other') + '22'" [style.color]="getCategoryColor(req.senderId?.goalCategory || 'Other')">
+                    {{ req.senderId?.goalCategory }}
+                  </span>
+                  <div class="user-meta">
+                    <span>🔥 {{ req.senderId?.streak || 0 }} day streak</span>
+                  </div>
+                </div>
+                <div class="card-action pending-actions">
+                  <button class="btn-accept" (click)="accept(req)">Accept</button>
+                  <button class="btn-reject" (click)="reject(req)">Decline</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+    }
+</div>

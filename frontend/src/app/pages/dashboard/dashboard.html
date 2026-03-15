@@ -1,0 +1,125 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Welcome to HabitFlow 👋</h1>
+      <p class="sub">Here's your habit summary for today.</p>
+    </div>
+    <a routerLink="/habits" class="btn-primary">+ Add Habit</a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+  } @else if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  } @else {
+    @if (aiMessage()) {
+      <div class="ai-banner">
+        <span class="ai-label">✦ AI Coach</span>
+        <p>{{ aiMessage() }}</p>
+      </div>
+    }
+
+    <div class="stats-grid">
+      <div class="stat-card" style="border-left-color:#6c63ff">
+        <span class="stat-icon">📋</span>
+        <div><span class="stat-val">{{ total() }}</span><span class="stat-lbl">Total Habits</span></div>
+      </div>
+      <div class="stat-card" style="border-left-color:#22c55e">
+        <span class="stat-icon">✅</span>
+        <div><span class="stat-val">{{ completed() }}</span><span class="stat-lbl">Completed</span></div>
+      </div>
+      <div class="stat-card" style="border-left-color:#f59e0b">
+        <span class="stat-icon">⏳</span>
+        <div><span class="stat-val">{{ pending() }}</span><span class="stat-lbl">Pending</span></div>
+      </div>
+      <div class="stat-card" style="border-left-color:#48cae4">
+        <span class="stat-icon">🔥</span>
+        <div><span class="stat-val">{{ topStreak() }}</span><span class="stat-lbl">Top Streak</span></div>
+      </div>
+      <div class="stat-card" style="border-left-color:#ec4899">
+        <span class="stat-icon">🎯</span>
+        <div><span class="stat-val">{{ rate() }}%</span><span class="stat-lbl">Completion</span></div>
+      </div>
+    </div>
+
+    @if (total() > 0) {
+      <div class="progress-card">
+        <div class="progress-header"><span>Today's Progress</span><span>{{ completed() }}/{{ total() }}</span></div>
+        <div class="progress-bar"><div class="progress-fill" [style.width.%]="rate()"></div></div>
+      </div>
+    }
+
+    <div class="section-card">
+      <div class="section-head">
+        <h2>Recent Habits</h2>
+        <a routerLink="/habits" class="link">View all →</a>
+      </div>
+      @if (recent().length === 0) {
+        <p class="empty">No habits yet. <a routerLink="/habits">Add one now</a></p>
+      } @else {
+        @for (h of recent(); track h._id) {
+          <div class="habit-row" [class.done]="h.completed">
+            <div class="dot" [class.green]="h.completed"></div>
+            <div class="habit-info">
+              <span class="habit-name">{{ h.name }}</span>
+              <span class="habit-cat">{{ h.category }} · 🔥 {{ h.streak }} day streak</span>
+            </div>
+            <span class="badge" [class.badge-done]="h.completed">{{ h.completed ? 'Done' : 'Pending' }}</span>
+          </div>
+        }
+      }
+    </div>
+
+    @if (peopleSvc.currentProfile()) {
+      <div class="people-grid">
+        <div class="section-card">
+          <div class="section-head">
+            <h2>People with Similar Goals</h2>
+            <a routerLink="/find-users" class="link">See all →</a>
+          </div>
+          @if (similarUsers().length === 0) {
+            <p class="empty">No similar users yet. <a routerLink="/find-users">Explore</a></p>
+          } @else {
+            @for (u of similarUsers(); track u._id) {
+              <div class="person-row">
+                <div class="person-avatar" [style.background]="getCategoryColor(u.goalCategory)">{{ u.name.charAt(0) }}</div>
+                <div class="person-info">
+                  <span class="person-name">{{ u.name }}</span>
+                  <span class="person-meta">{{ u.goalCategory }} · 🔥 {{ u.streak }} days</span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        <div class="section-card">
+          <div class="section-head">
+            <h2>Your Connections</h2>
+            <a routerLink="/find-users" class="link">Manage →</a>
+          </div>
+          @if (myConnections().length === 0) {
+            <p class="empty">No connections yet. <a routerLink="/find-users">Find people</a></p>
+          } @else {
+            @for (c of myConnections(); track c.connectionId) {
+              <div class="person-row">
+                <div class="person-avatar" [style.background]="getCategoryColor(c.user?.goalCategory || 'Other')">{{ (c.user?.name || '?').charAt(0) }}</div>
+                <div class="person-info">
+                  <span class="person-name">{{ c.user?.name }}</span>
+                  <span class="person-meta">{{ c.user?.goalCategory }} · 🔥 {{ c.user?.streak || 0 }} days</span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="section-card setup-prompt">
+        <span class="setup-icon">👤</span>
+        <div>
+          <p>Set up your profile to discover people with similar goals.</p>
+          <a routerLink="/find-users" class="btn-primary" style="display:inline-block;margin-top:0.5rem">Set Up Profile</a>
+        </div>
+      </div>
+    }
+  }
+</div>

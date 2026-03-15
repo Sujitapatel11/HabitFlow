@@ -1,0 +1,73 @@
+<div class="habit-list-page">
+  <div class="page-header">
+    <div>
+      <h1>My Habits</h1>
+      <p class="subtitle">Manage and track all your habits.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-whatsapp" (click)="showReminderPanel.set(!showReminderPanel())">
+        📱 WhatsApp Reminder
+      </button>
+      <a routerLink="/add" class="btn-primary">+ Add Habit</a>
+    </div>
+  </div>
+
+  @if (showReminderPanel()) {
+    <div class="reminder-panel">
+      <div class="reminder-panel-header">
+        <span>📲 Send WhatsApp Reminder</span>
+        <button class="close-btn" (click)="showReminderPanel.set(false)">✕</button>
+      </div>
+      <p class="reminder-hint">Sends a WhatsApp message listing all pending habits.</p>
+      <div class="reminder-form">
+        <input type="tel" [ngModel]="phone()" (ngModelChange)="phone.set($event)" placeholder="+919876543210" />
+        <button class="btn-send" (click)="sendWhatsAppReminder()" [disabled]="sendingReminder()">
+          {{ sendingReminder() ? 'Sending...' : 'Send Now' }}
+        </button>
+      </div>
+      @if (reminderMsg()) { <div class="reminder-success">✅ {{ reminderMsg() }}</div> }
+      @if (reminderError()) { <div class="reminder-error">❌ {{ reminderError() }}</div> }
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div><p>Loading habits...</p></div>
+  } @else if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  } @else if (habits().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🌱</div>
+      <h3>No habits yet</h3>
+      <p>Start building better habits today.</p>
+      <a routerLink="/add" class="btn-primary">Create your first habit</a>
+    </div>
+  } @else {
+    <div class="habits-grid">
+      @for (habit of habits(); track habit._id) {
+        <div class="habit-card" [class.completed]="habit.completed">
+          <div class="card-header">
+            <span class="category-tag"
+              [style.background]="getCategoryColor(habit.category) + '20'"
+              [style.color]="getCategoryColor(habit.category)">
+              {{ habit.category }}
+            </span>
+            <span class="streak">🔥 {{ habit.streak }}</span>
+          </div>
+          <h3 class="habit-title" [class.strikethrough]="habit.completed">{{ habit.name }}</h3>
+          @if (habit.description) { <p class="habit-desc">{{ habit.description }}</p> }
+          <div class="card-footer">
+            <button class="btn-toggle" [class.btn-undo]="habit.completed" (click)="toggleComplete(habit)">
+              {{ habit.completed ? '↩ Undo' : '✓ Complete' }}
+            </button>
+            <div class="card-actions">
+              @if (!habit.completed) {
+                <button class="btn-remind" (click)="sendSingleReminder(habit)" title="WhatsApp reminder">📱</button>
+              }
+              <button class="btn-delete" (click)="deleteHabit(habit._id)">🗑</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

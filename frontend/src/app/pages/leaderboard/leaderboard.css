@@ -1,0 +1,22 @@
+.page { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
+.page-header { margin-bottom: 1.75rem; }
+.page-header h1 { font-size: 1.7rem; font-weight: 700; color: #1a1a2e; margin: 0 0 .25rem; }
+.sub { color: #888; font-size: .9rem; margin: 0; }
+.leaderboard-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.06); border: 1px solid #f0f0f5; }
+.entry { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-bottom: 1px solid #f9f9f9; transition: background .15s; }
+.entry:last-child { border-bottom: none; }
+.entry:hover { background: #fafafa; }
+.entry.top3 { background: linear-gradient(90deg,#fefce8,#fff); }
+.rank { font-size: 1.3rem; width: 2rem; text-align: center; flex-shrink: 0; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#6c63ff,#48cae4); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+.entry-info { flex: 1; }
+.entry-name { display: block; font-size: .95rem; font-weight: 600; color: #1a1a2e; }
+.entry-streak { display: block; font-size: .78rem; color: #888; margin-top: 2px; }
+.streak-bar-wrap { width: 100px; height: 8px; background: #f0f0f5; border-radius: 99px; overflow: hidden; }
+.streak-bar { height: 100%; background: linear-gradient(90deg,#6c63ff,#48cae4); border-radius: 99px; transition: width .6s ease; }
+.loading { display: flex; justify-content: center; padding: 3rem; }
+.spinner { width: 34px; height: 34px; border: 3px solid #e0e0e0; border-top-color: #6c63ff; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 4rem 2rem; color: #888; }
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state h3 { color: #1a1a2e; margin: 0 0 .5rem; }

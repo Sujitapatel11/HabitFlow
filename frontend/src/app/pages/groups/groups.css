@@ -1,0 +1,71 @@
+.page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.75rem; }
+.page-header h1 { font-size: 1.7rem; font-weight: 700; color: #1a1a2e; margin: 0 0 .25rem; }
+.sub { color: #888; font-size: .9rem; margin: 0; }
+.form-card { background: #fff; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,.06); border: 1px solid #f0f0f5; }
+.form-card h3 { font-size: 1rem; font-weight: 600; color: #1a1a2e; margin: 0 0 1rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .85rem; }
+label { font-size: .82rem; font-weight: 600; color: #374151; }
+input, select { padding: .65rem .9rem; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: .9rem; outline: none; font-family: inherit; }
+input:focus, select:focus { border-color: #6c63ff; }
+.btn-submit { background: #6c63ff; color: #fff; border: none; padding: .65rem 1.5rem; border-radius: 10px; font-size: .9rem; font-weight: 600; cursor: pointer; }
+.groups-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 1.1rem; }
+.group-card { background: #fff; border-radius: 16px; padding: 1.35rem; box-shadow: 0 2px 10px rgba(0,0,0,.05); border: 1px solid #f0f0f5; display: flex; flex-direction: column; gap: .6rem; transition: transform .2s; }
+.group-card:hover { transform: translateY(-2px); }
+.group-top { display: flex; justify-content: space-between; align-items: center; }
+.group-cat { font-size: .7rem; font-weight: 600; background: #f5f3ff; color: #6c63ff; padding: .2rem .65rem; border-radius: 99px; text-transform: uppercase; }
+.member-count { font-size: .8rem; color: #888; }
+h3 { font-size: 1rem; font-weight: 600; color: #1a1a2e; margin: 0; }
+.group-desc { font-size: .82rem; color: #888; margin: 0; flex: 1; }
+.group-creator { font-size: .75rem; color: #aaa; margin: 0; }
+.group-footer { display: flex; align-items: center; gap: .75rem; margin-top: auto; padding-top: .5rem; border-top: 1px solid #f0f0f5; }
+.btn-join { background: #6c63ff; color: #fff; border: none; padding: .4rem .9rem; border-radius: 8px; font-size: .82rem; font-weight: 600; cursor: pointer; }
+.btn-leave { background: #fee2e2; color: #dc2626; border: none; padding: .4rem .9rem; border-radius: 8px; font-size: .82rem; font-weight: 600; cursor: pointer; }
+.member-badge { font-size: .78rem; color: #22c55e; font-weight: 600; }
+.loading { display: flex; justify-content: center; padding: 3rem; }
+.spinner { width: 34px; height: 34px; border: 3px solid #e0e0e0; border-top-color: #6c63ff; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 4rem 2rem; color: #888; }
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state h3 { color: #1a1a2e; margin: 0 0 .5rem; }
+@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+/* Activity feed */
+.btn-activity {
+  background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;
+  padding: .4rem .9rem; border-radius: 8px; font-size: .82rem; font-weight: 600; cursor: pointer;
+  transition: all .2s;
+}
+.btn-activity:hover { background: #dcfce7; }
+
+.activity-feed {
+  margin-top: .5rem;
+  border-top: 1px solid #f0f0f5;
+  padding-top: .85rem;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+.activity-title {
+  font-size: .75rem; font-weight: 700; color: #6c63ff;
+  text-transform: uppercase; letter-spacing: .05em; margin-bottom: .25rem;
+}
+.activity-empty { font-size: .82rem; color: #aaa; text-align: center; padding: .5rem 0; }
+
+.activity-item {
+  display: flex; align-items: center; gap: .6rem;
+  background: #f9fafb; border-radius: 8px; padding: .5rem .75rem;
+}
+.activity-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff; font-size: .8rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.activity-info { flex: 1; font-size: .82rem; }
+.activity-name { font-weight: 600; color: #1a1a2e; }
+.activity-habit { color: #555; margin-left: .25rem; }
+.activity-time { font-size: .72rem; color: #aaa; white-space: nowrap; }
+
+.btn-primary { background: #6c63ff; color: #fff; border: none; padding: .6rem 1.25rem; border-radius: 10px; font-size: .9rem; font-weight: 600; cursor: pointer; }

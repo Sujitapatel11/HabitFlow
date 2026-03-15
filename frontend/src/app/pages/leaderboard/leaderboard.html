@@ -1,0 +1,26 @@
+<div class="page">
+  <div class="page-header">
+    <div><h1>Leaderboard</h1><p class="sub">Top habit streaks in the community.</p></div>
+  </div>
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div></div>
+  } @else if (entries().length === 0) {
+    <div class="empty-state"><div class="empty-icon">🏆</div><h3>No data yet</h3><p>Complete habits to appear here.</p></div>
+  } @else {
+    <div class="leaderboard-card">
+      @for (entry of entries(); track entry.userId; let i = $index) {
+        <div class="entry" [class.top3]="i < 3">
+          <span class="rank">{{ getMedal(i) }}</span>
+          <div class="avatar">{{ entry.name.charAt(0) }}</div>
+          <div class="entry-info">
+            <span class="entry-name">{{ entry.name }}</span>
+            <span class="entry-streak">🔥 {{ entry.maxStreak }} day streak</span>
+          </div>
+          <div class="streak-bar-wrap">
+            <div class="streak-bar" [style.width.%]="(entry.maxStreak / entries()[0].maxStreak) * 100"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

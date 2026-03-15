@@ -1,0 +1,82 @@
+<div class="page">
+  <div class="page-header">
+    <div><h1>Groups</h1><p class="sub">Join communities that share your goals.</p></div>
+    <button class="btn-primary" (click)="showForm.update(v => !v)">{{ showForm() ? '✕ Cancel' : '+ Create Group' }}</button>
+  </div>
+
+  @if (showForm()) {
+    <div class="form-card">
+      <h3>Create a Group</h3>
+      <form (ngSubmit)="create()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Group Name *</label>
+            <input type="text" [(ngModel)]="form.name" name="name" placeholder="e.g. 30 Day Coding Challenge" />
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select [(ngModel)]="form.category" name="category">
+              @for (c of categories; track c) { <option [value]="c">{{ c }}</option> }
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" [(ngModel)]="form.description" name="description" placeholder="What is this group about?" />
+        </div>
+        <button type="submit" class="btn-submit">Create Group</button>
+      </form>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div></div>
+  } @else if (groups().length === 0) {
+    <div class="empty-state"><div class="empty-icon">👥</div><h3>No groups yet</h3><p>Create the first one!</p></div>
+  } @else {
+    <div class="groups-grid">
+      @for (g of groups(); track g._id) {
+        <div class="group-card">
+          <div class="group-top">
+            <span class="group-cat">{{ g.category }}</span>
+            <span class="member-count">👥 {{ g.memberCount }}</span>
+          </div>
+          <h3>{{ g.name }}</h3>
+          @if (g.description) { <p class="group-desc">{{ g.description }}</p> }
+
+          <div class="group-footer">
+            @if (isMember(g)) {
+              <button class="btn-leave" (click)="leave(g)">Leave</button>
+              <button class="btn-activity" (click)="toggleActivity(g)">
+                {{ expandedGroup() === g._id ? '▲ Hide' : '🏆 Activity' }}
+              </button>
+              <span class="member-badge">✓ Member</span>
+            } @else {
+              <button class="btn-join" (click)="join(g)">Join Group</button>
+            }
+          </div>
+
+          @if (expandedGroup() === g._id) {
+            <div class="activity-feed">
+              <div class="activity-title">Recent completions in {{ g.category }}</div>
+              @if (groupActivity(g).length === 0) {
+                <p class="activity-empty">No completions yet — be the first! 💪</p>
+              } @else {
+                @for (post of groupActivity(g); track post._id) {
+                  <div class="activity-item">
+                    <div class="activity-avatar">{{ post.authorName.charAt(0).toUpperCase() }}</div>
+                    <div class="activity-info">
+                      <span class="activity-name">{{ post.authorName }}</span>
+                      <span class="activity-habit">completed "{{ post.habitName }}"</span>
+                    </div>
+                    <span class="activity-time">{{ timeAgo(post.createdAt) }}</span>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

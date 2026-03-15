@@ -1,0 +1,128 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  padding: 1.5rem;
+}
+
+.auth-card {
+  background: #1e293b;
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 440px;
+  border: 1px solid #334155;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+}
+.brand-icon { font-size: 1.5rem; color: #6c63ff; }
+.brand-name { font-size: 1.5rem; font-weight: 800; color: #f1f5f9; letter-spacing: -0.5px; }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  background: #0f172a;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 1.5rem;
+}
+.tab {
+  flex: 1;
+  padding: 0.55rem;
+  border: none;
+  background: none;
+  color: #94a3b8;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.tab.active { background: #6c63ff; color: #fff; }
+
+/* Form */
+.form-group { margin-bottom: 1.1rem; }
+.form-group label { display: block; font-size: 0.82rem; color: #94a3b8; margin-bottom: 0.4rem; font-weight: 500; }
+.hint { font-weight: 400; color: #64748b; }
+.form-group input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.form-group input:focus { border-color: #6c63ff; }
+.form-group input::placeholder { color: #475569; }
+
+/* Goal chips */
+.goals-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.goal-chip {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1.5px solid #334155;
+  background: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.goal-chip.selected { border-color: #6c63ff; background: #6c63ff22; color: #a5b4fc; }
+.goal-chip:hover { border-color: #6c63ff88; }
+
+.btn-submit {
+  width: 100%;
+  padding: 0.8rem;
+  background: #6c63ff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+.btn-submit:hover:not(:disabled) { background: #5a52e0; }
+.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.error-banner {
+  background: #ef444422;
+  border: 1px solid #ef444444;
+  color: #f87171;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.switch-hint {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 1.25rem;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: #a5b4fc;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0;
+}
+.link-btn:hover { color: #6c63ff; }
