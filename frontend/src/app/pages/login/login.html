@@ -5,15 +5,17 @@
       <span class="brand-name">HabitFlow</span>
     </div>
 
-    <div class="tabs">
-      <button class="tab" [class.active]="mode() === 'login'" (click)="switchMode('login')">Log In</button>
-      <button class="tab" [class.active]="mode() === 'register'" (click)="switchMode('register')">Create Account</button>
-    </div>
-
-    @if (error()) {
-      <div class="error-banner">{{ error() }}</div>
+    @if (mode() === 'login' || mode() === 'register') {
+      <div class="tabs">
+        <button class="tab" [class.active]="mode() === 'login'" (click)="switchMode('login')">Log In</button>
+        <button class="tab" [class.active]="mode() === 'register'" (click)="switchMode('register')">Create Account</button>
+      </div>
     }
 
+    @if (error()) { <div class="error-banner">{{ error() }}</div> }
+    @if (success()) { <div class="success-banner">{{ success() }}</div> }
+
+    <!-- LOGIN -->
     @if (mode() === 'login') {
       <form (ngSubmit)="login()">
         <div class="form-group">
@@ -24,6 +26,9 @@
           <label>Password</label>
           <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" autocomplete="current-password" />
         </div>
+        <div class="forgot-link">
+          <button type="button" class="link-btn" (click)="switchMode('forgot')">Forgot password?</button>
+        </div>
         <button type="submit" class="btn-submit" [disabled]="loading()">
           {{ loading() ? 'Logging in...' : 'Log In' }}
         </button>
@@ -31,6 +36,7 @@
       <p class="switch-hint">Don't have an account? <button class="link-btn" (click)="switchMode('register')">Create one</button></p>
     }
 
+    <!-- REGISTER -->
     @if (mode() === 'register') {
       <form (ngSubmit)="register()">
         <div class="form-group">
@@ -49,9 +55,7 @@
           <label>Primary Goal</label>
           <div class="goals-grid">
             @for (g of goals; track g) {
-              <button type="button" class="goal-chip" [class.selected]="goalCategory === g" (click)="goalCategory = g">
-                {{ g }}
-              </button>
+              <button type="button" class="goal-chip" [class.selected]="goalCategory === g" (click)="goalCategory = g">{{ g }}</button>
             }
           </div>
         </div>
@@ -65,5 +69,70 @@
       </form>
       <p class="switch-hint">Already have an account? <button class="link-btn" (click)="switchMode('login')">Log in</button></p>
     }
+
+    <!-- FORGOT — Step 1: Enter email -->
+    @if (mode() === 'forgot') {
+      <div class="reset-header">
+        <div class="reset-icon">🔐</div>
+        <h2>Forgot Password?</h2>
+        <p class="auth-sub">Enter your email and we'll send a 6-digit OTP.</p>
+      </div>
+      <form (ngSubmit)="sendOtp()">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="forgotEmail" name="forgotEmail" placeholder="you@example.com" />
+        </div>
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          {{ loading() ? 'Sending OTP...' : 'Send OTP →' }}
+        </button>
+      </form>
+      <p class="switch-hint"><button class="link-btn" (click)="switchMode('login')">← Back to login</button></p>
+    }
+
+    <!-- VERIFY OTP — Step 2 -->
+    @if (mode() === 'verify-otp') {
+      <div class="reset-header">
+        <div class="reset-icon">📧</div>
+        <h2>Enter OTP</h2>
+        <p class="auth-sub">Check <strong>{{ forgotEmail }}</strong> for your 6-digit code.</p>
+      </div>
+      <form (ngSubmit)="verifyOtp()">
+        <div class="form-group">
+          <label>6-Digit OTP</label>
+          <input type="text" [(ngModel)]="otp" name="otp" placeholder="e.g. 482910" maxlength="6" class="otp-input" />
+        </div>
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          {{ loading() ? 'Verifying...' : 'Verify OTP →' }}
+        </button>
+      </form>
+      <p class="switch-hint">
+        Didn't get it? <button class="link-btn" (click)="sendOtp()">Resend OTP</button>
+        &nbsp;·&nbsp;
+        <button class="link-btn" (click)="switchMode('forgot')">Change email</button>
+      </p>
+    }
+
+    <!-- RESET PASSWORD — Step 3 -->
+    @if (mode() === 'reset') {
+      <div class="reset-header">
+        <div class="reset-icon">🔑</div>
+        <h2>New Password</h2>
+        <p class="auth-sub">Choose a strong password for your account.</p>
+      </div>
+      <form (ngSubmit)="resetPassword()">
+        <div class="form-group">
+          <label>New Password</label>
+          <input type="password" [(ngModel)]="newPassword" name="newPassword" placeholder="••••••••" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="••••••••" />
+        </div>
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          {{ loading() ? 'Resetting...' : 'Reset Password ✓' }}
+        </button>
+      </form>
+    }
+
   </div>
 </div>

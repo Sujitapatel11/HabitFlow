@@ -13,6 +13,8 @@ const appUserSchema = new mongoose.Schema(
     },
     bio: { type: String, default: '', maxlength: 200 },
     streak: { type: Number, default: 0 },
+    resetOtp:        { type: String, default: null },
+    resetOtpExpiry:  { type: Date,   default: null },
   },
   { timestamps: true }
 );

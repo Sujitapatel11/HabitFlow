@@ -24,6 +24,18 @@ export class AuthService {
     );
   }
 
+  forgotPassword(email: string) {
+    return this.http.post<{ success: boolean; message: string }>(`${this.api}/forgot-password`, { email });
+  }
+
+  verifyOtp(email: string, otp: string) {
+    return this.http.post<{ success: boolean; message: string }>(`${this.api}/verify-otp`, { email, otp });
+  }
+
+  resetPassword(email: string, otp: string, newPassword: string) {
+    return this.http.post<{ success: boolean; message: string }>(`${this.api}/reset-password`, { email, otp, newPassword });
+  }
+
   logout() {
     localStorage.removeItem('hf_user');
     this.currentUser.set(null);
