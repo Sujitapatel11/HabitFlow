@@ -76,3 +76,41 @@
 .setup-icon { font-size: 2rem; }
 .setup-prompt p { margin: 0; color: #555; font-size: .9rem; }
 .btn-primary { padding: .55rem 1.25rem; background: #6c63ff; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: .9rem; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page { padding: 1.25rem 1rem; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .xp-bar-wrap { flex-wrap: wrap; gap: .5rem; }
+  .xp-next { display: none; }
+}
+@media (max-width: 480px) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .page-header h1 { font-size: 1.4rem; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: .65rem; }
+  .stat-card { padding: .9rem; }
+  .stat-val { font-size: 1.3rem; }
+  .people-grid { grid-template-columns: 1fr; }
+  .section-card { padding: 1rem; }
+}
+
+/* XP Bar on dashboard */
+.xp-bar-wrap {
+  display: flex; align-items: center; gap: .75rem;
+  background: #fff; border-radius: 12px; padding: .75rem 1.25rem;
+  margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  border: 1px solid #f0f0f5;
+}
+.xp-left { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+.level-badge {
+  font-size: .8rem; font-weight: 700;
+  background: linear-gradient(135deg,#6c63ff,#48cae4);
+  color: #fff; padding: .25rem .75rem; border-radius: 99px;
+}
+.xp-text { font-size: .8rem; color: #888; font-weight: 600; }
+.xp-track { flex: 1; height: 8px; background: #f0f0f5; border-radius: 99px; overflow: hidden; }
+.xp-fill {
+  height: 100%; background: linear-gradient(90deg,#6c63ff,#48cae4);
+  border-radius: 99px; transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+.xp-next { font-size: .75rem; color: #aaa; flex-shrink: 0; }

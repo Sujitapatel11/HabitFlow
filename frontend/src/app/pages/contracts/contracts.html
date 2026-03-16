@@ -1,0 +1,215 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>🤝 Commitment Contracts</h1>
+      <p class="sub">Put your reputation on the line. Community witnesses keep you honest.</p>
+    </div>
+    <button class="btn-primary" (click)="showForm.update(v => !v)">
+      {{ showForm() ? '✕ Cancel' : '+ New Contract' }}
+    </button>
+  </div>
+
+  @if (error()) { <div class="error-banner" (click)="error.set('')">{{ error() }} ✕</div> }
+
+  <!-- Create Contract Form -->
+  @if (showForm()) {
+    <div class="form-card">
+      <h3>Create a Commitment Contract</h3>
+      <p class="form-sub">Choose a habit, set a duration, and stake your reputation points. The community will witness your progress.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Habit *</label>
+          <select [(ngModel)]="form.habitId" name="habitId">
+            <option value="">— Select a habit —</option>
+            @for (h of myHabits(); track h._id) {
+              <option [value]="h._id">{{ h.name }} ({{ h.category }})</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Duration (days)</label>
+          <input type="number" [(ngModel)]="form.durationDays" name="duration" min="1" max="365" />
+        </div>
+        <div class="form-group">
+          <label>Stake (reputation points)</label>
+          <input type="number" [(ngModel)]="form.stakePoints" name="stake" min="10" max="500" />
+        </div>
+      </div>
+      <div class="stake-info">
+        <span class="stake-icon">⚠️</span>
+        <span>If you miss a day or get 3 doubt votes, your contract breaks and you lose <strong>{{ form.stakePoints }} reputation points</strong> publicly.</span>
+      </div>
+      <button class="btn-submit" (click)="createContract()" [disabled]="submitting() || !form.habitId">
+        {{ submitting() ? 'Creating...' : '🤝 Commit Publicly' }}
+      </button>
+    </div>
+  }
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" [class.active]="tab() === 'mine'" (click)="tab.set('mine')">
+      My Contracts
+      @if (myContracts().length > 0) { <span class="tab-badge">{{ myContracts().length }}</span> }
+    </button>
+    <button class="tab" [class.active]="tab() === 'community'" (click)="tab.set('community')">
+      Witness Others
+      @if (communityContracts().length > 0) { <span class="tab-badge">{{ communityContracts().length }}</span> }
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div></div>
+  } @else {
+
+    <!-- MY CONTRACTS -->
+    @if (tab() === 'mine') {
+      @if (myContracts().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📜</div>
+          <h3>No contracts yet</h3>
+          <p>Create a contract to put your reputation on the line.</p>
+        </div>
+      } @else {
+        <div class="contracts-list">
+          @for (c of myContracts(); track c._id) {
+            <div class="contract-card" [class.completed]="c.status === 'completed'" [class.broken]="c.status === 'broken'">
+
+              <div class="contract-top">
+                <div class="contract-left">
+                  <span class="cat-tag" [style.background]="catColor(c.category)+'22'" [style.color]="catColor(c.category)">
+                    {{ c.category }}
+                  </span>
+                  <h3>{{ c.habitName }}</h3>
+                  <div class="contract-meta">
+                    <span>📅 {{ c.durationDays }}-day contract</span>
+                    <span>⚡ {{ c.stakePoints }} pts staked</span>
+                    <span>👁 {{ c.witnesses.length }} witnesses</span>
+                  </div>
+                </div>
+                <div class="status-badge" [class.active]="c.status === 'active'" [class.done]="c.status === 'completed'" [class.fail]="c.status === 'broken'">
+                  @if (c.status === 'active') { 🔥 Active }
+                  @if (c.status === 'completed') { 🏆 Completed }
+                  @if (c.status === 'broken') { 💀 Broken }
+                </div>
+              </div>
+
+              <!-- Progress -->
+              <div class="progress-row">
+                <div class="progress-track">
+                  <div class="progress-fill" [style.width.%]="progressPct(c)" [style.background]="catColor(c.category)"></div>
+                </div>
+                <span class="progress-label">{{ c.completedDays }} / {{ c.durationDays }} days</span>
+              </div>
+
+              @if (c.status === 'active') {
+                <div class="days-left">{{ daysLeft(c) }} days remaining</div>
+
+                <!-- Check-in -->
+                @if (!hasCheckedInToday(c)) {
+                  <div class="checkin-row">
+                    <input type="text" class="checkin-input"
+                      placeholder="Add a note (optional)..."
+                      [value]="checkInNote()[c._id] || ''"
+                      (input)="updateNote(c._id, $any($event.target).value)" />
+                    <button class="btn-checkin" (click)="doCheckIn(c)" [disabled]="checkingIn() === c._id">
+                      {{ checkingIn() === c._id ? '...' : '✓ Check In Today' }}
+                    </button>
+                  </div>
+                } @else {
+                  <div class="checked-in-badge">✅ Checked in today</div>
+                }
+
+                <!-- Latest check-in witness counts -->
+                @if (latestCheckIn(c); as ci) {
+                  <div class="witness-counts">
+                    <span class="legit-count">✅ {{ ci.legitCount }} legit</span>
+                    <span class="doubt-count">❌ {{ ci.doubtCount }} doubt</span>
+                    @if (ci.doubtCount >= 2) {
+                      <span class="doubt-warn">⚠️ 1 more doubt breaks your contract!</span>
+                    }
+                  </div>
+                }
+
+                <button class="btn-break" (click)="breakContract(c)">Give Up</button>
+              }
+
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- COMMUNITY WITNESS -->
+    @if (tab() === 'community') {
+      @if (communityContracts().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">👁</div>
+          <h3>No active contracts to witness</h3>
+          <p>When others create contracts, you can vote on their check-ins here.</p>
+        </div>
+      } @else {
+        <div class="contracts-list">
+          @for (c of communityContracts(); track c._id) {
+            <div class="contract-card witness-card">
+
+              <div class="contract-top">
+                <div class="contract-left">
+                  <div class="witness-user">
+                    <div class="user-avatar" [style.background]="catColor(c.category)">
+                      {{ c.userName.charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                      <span class="user-name">{{ c.userName }}</span>
+                      <span class="cat-tag small" [style.background]="catColor(c.category)+'22'" [style.color]="catColor(c.category)">
+                        {{ c.category }}
+                      </span>
+                    </div>
+                  </div>
+                  <h3>{{ c.habitName }}</h3>
+                  <div class="contract-meta">
+                    <span>📅 {{ c.durationDays }}-day contract</span>
+                    <span>⚡ {{ c.stakePoints }} pts at stake</span>
+                    <span>Day {{ c.completedDays }} / {{ c.durationDays }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Progress -->
+              <div class="progress-row">
+                <div class="progress-track">
+                  <div class="progress-fill" [style.width.%]="progressPct(c)" [style.background]="catColor(c.category)"></div>
+                </div>
+                <span class="progress-label">{{ progressPct(c) }}%</span>
+              </div>
+
+              <!-- Latest check-in note -->
+              @if (latestCheckIn(c); as ci) {
+                <div class="checkin-note">
+                  <span class="note-label">Latest check-in:</span>
+                  <span class="note-text">{{ ci.note || 'No note added' }}</span>
+                  <div class="vote-counts">
+                    <span class="legit-count">✅ {{ ci.legitCount }}</span>
+                    <span class="doubt-count">❌ {{ ci.doubtCount }}</span>
+                  </div>
+                </div>
+              }
+
+              <!-- Witness vote buttons -->
+              @if (hasVoted(c)) {
+                <div class="voted-badge">You've witnessed this contract</div>
+              } @else {
+                <div class="vote-row">
+                  <button class="btn-legit" (click)="vote(c, 'legit')">✅ Legit</button>
+                  <button class="btn-doubt" (click)="vote(c, 'doubt')">❌ Doubt</button>
+                </div>
+              }
+
+            </div>
+          }
+        </div>
+      }
+    }
+
+  }
+</div>

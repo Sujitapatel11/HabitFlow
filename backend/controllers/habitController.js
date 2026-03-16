@@ -3,17 +3,18 @@ const Post = require('../models/Post');
 
 const getHabits = async (req, res, next) => {
   try {
-    const habits = await Habit.find().sort({ createdAt: -1 });
+    const filter = req.query.userId ? { userId: req.query.userId } : {};
+    const habits = await Habit.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, count: habits.length, data: habits });
   } catch (err) { next(err); }
 };
 
 const createHabit = async (req, res, next) => {
   try {
-    const { name, description, category } = req.body;
+    const { name, description, category, userId } = req.body;
     if (!name?.trim())
       return res.status(400).json({ success: false, message: 'Habit name is required' });
-    const habit = await Habit.create({ name, description, category });
+    const habit = await Habit.create({ name, description, category, userId: userId || '' });
     res.status(201).json({ success: true, data: habit });
   } catch (err) { next(err); }
 };

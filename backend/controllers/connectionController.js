@@ -19,8 +19,17 @@ const sendRequest = async (req, res, next) => {
       ],
     });
 
-    if (existing)
+    if (existing) {
+      // Allow re-request if previously rejected
+      if (existing.status === 'rejected') {
+        existing.status = 'pending';
+        existing.senderId = senderId;
+        existing.receiverId = receiverId;
+        await existing.save();
+        return res.status(201).json({ success: true, data: existing });
+      }
       return res.status(400).json({ success: false, message: 'Connection already exists', status: existing.status });
+    }
 
     const connection = await Connection.create({ senderId, receiverId });
     res.status(201).json({ success: true, data: connection });

@@ -27,15 +27,18 @@ export class FindUsers implements OnInit {
     const me = this.peopleSvc.currentProfile()!;
     this.loading.set(true);
 
-    this.peopleSvc.getSimilarUsers(me.goalCategory, me._id).subscribe({
+    // Load all users first, then fetch statuses for all of them at once
+    this.peopleSvc.getAllUsers(me._id).subscribe({
       next: (res) => {
-        this.similarUsers.set(res.data);
+        this.allUsers.set(res.data);
+        this.loading.set(false);
+        // Fetch statuses for every user in one go
         this.loadStatuses(res.data);
       },
     });
 
-    this.peopleSvc.getAllUsers(me._id).subscribe({
-      next: (res) => { this.allUsers.set(res.data); this.loading.set(false); },
+    this.peopleSvc.getSimilarUsers(me.goalCategory, me._id).subscribe({
+      next: (res) => this.similarUsers.set(res.data),
     });
 
     this.peopleSvc.getMyConnections(me._id).subscribe({
@@ -51,19 +54,23 @@ export class FindUsers implements OnInit {
     const me = this.peopleSvc.currentProfile()!;
     users.forEach(u => {
       this.peopleSvc.getConnectionStatus(me._id, u._id).subscribe({
-        next: (res) => this.connectionStatuses.update(s => ({ ...s, [u._id]: res.status })),
+        next: (res) => {
+          this.connectionStatuses.update(s => ({ ...s, [u._id]: res.status }));
+        },
       });
     });
   }
 
   connect(user: AppUser) {
     const me = this.peopleSvc.currentProfile()!;
+    // Optimistically mark as pending immediately
+    this.connectionStatuses.update(s => ({ ...s, [user._id]: 'pending' }));
+
     this.peopleSvc.sendRequest(me._id, user._id).subscribe({
-      next: () => this.connectionStatuses.update(s => ({ ...s, [user._id]: 'pending' })),
       error: (err: any) => {
-        if (err.error?.status) {
-          this.connectionStatuses.update(s => ({ ...s, [user._id]: err.error.status }));
-        }
+        // If backend says already exists, use the real status from the error
+        const status = err.error?.status || 'none';
+        this.connectionStatuses.update(s => ({ ...s, [user._id]: status }));
       },
     });
   }

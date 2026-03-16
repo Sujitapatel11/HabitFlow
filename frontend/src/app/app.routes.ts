@@ -10,5 +10,7 @@ export const routes: Routes = [
   { path: 'groups', canActivate: [authGuard], loadComponent: () => import('./pages/groups/groups').then(m => m.Groups) },
   { path: 'leaderboard', canActivate: [authGuard], loadComponent: () => import('./pages/leaderboard/leaderboard').then(m => m.Leaderboard) },
   { path: 'find-users', canActivate: [authGuard], loadComponent: () => import('./pages/find-users/find-users').then(m => m.FindUsers) },
+  { path: 'mirror', canActivate: [authGuard], loadComponent: () => import('./pages/mirror/mirror').then(m => m.Mirror) },
+  { path: 'contracts', canActivate: [authGuard], loadComponent: () => import('./pages/contracts/contracts').then(m => m.Contracts) },
   { path: '**', redirectTo: 'dashboard' },
 ];

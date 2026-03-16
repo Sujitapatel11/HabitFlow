@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const habitSchema = new mongoose.Schema(
   {
+    userId: { type: String, default: '' },
     name: { type: String, required: true, trim: true, maxlength: 100 },
     description: { type: String, default: '', maxlength: 300 },
     category: {

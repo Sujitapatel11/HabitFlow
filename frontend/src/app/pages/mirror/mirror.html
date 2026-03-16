@@ -1,0 +1,216 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>🧠 AI Accountability Mirror</h1>
+      <p class="sub">An honest reflection of your discipline this week.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div><span>Analyzing your habits...</span></div>
+  } @else if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  } @else if (data()?.empty) {
+    <div class="empty-state">
+      <div class="empty-icon">🪞</div>
+      <h3>No habits to reflect on yet</h3>
+      <p>Start tracking habits and come back for your weekly reflection.</p>
+    </div>
+  } @else if (data(); as d) {
+
+    <!-- Score + Personality Hero -->
+    <div class="hero-row">
+
+      <!-- Circular Score -->
+      <div class="score-card">
+        <div class="score-ring-wrap">
+          <svg class="score-ring" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="54" fill="none" stroke="#f0f0f5" stroke-width="10"/>
+            <circle cx="60" cy="60" r="54" fill="none"
+              [attr.stroke]="scoreColor(d.disciplineScore)"
+              stroke-width="10"
+              stroke-linecap="round"
+              [attr.stroke-dasharray]="circumference"
+              [attr.stroke-dashoffset]="dashOffset(d.disciplineScore)"
+              transform="rotate(-90 60 60)"
+              class="ring-fill"
+            />
+          </svg>
+          <div class="score-inner">
+            <span class="score-num">{{ d.disciplineScore }}</span>
+            <span class="score-label">/ 100</span>
+          </div>
+        </div>
+        <div class="score-rank">{{ d.rank }}</div>
+        <div class="score-title">Discipline Score</div>
+        <div class="score-week">Week {{ d.weekNum }}</div>
+      </div>
+
+      <!-- Personality Card -->
+      <div class="personality-card">
+        <div class="personality-icon">{{ d.personality.icon }}</div>
+        <div class="personality-type">{{ d.personality.type }}</div>
+        <div class="personality-desc">{{ d.personality.desc }}</div>
+        <div class="trend-chip">{{ d.trend }}</div>
+
+        @if (shared()) {
+          <div class="shared-badge">✅ Shared to community feed!</div>
+        } @else {
+          <button class="btn-share" (click)="shareToFeed()" [disabled]="sharing()">
+            {{ sharing() ? 'Sharing...' : '📢 Share to Feed' }}
+          </button>
+        }
+      </div>
+
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-pill">
+        <span class="stat-val green">{{ d.completedCount }}</span>
+        <span class="stat-lbl">Completed</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-val red">{{ d.missedCount }}</span>
+        <span class="stat-lbl">Missed</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-val purple">{{ d.completionRate }}%</span>
+        <span class="stat-lbl">Rate</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-val orange">{{ d.maxStreak }}</span>
+        <span class="stat-lbl">Best Streak</span>
+      </div>
+    </div>
+
+    <!-- Completion bar -->
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-title">Weekly Completion</span>
+        <span class="section-meta">{{ d.completedCount }} / {{ d.totalHabits }} habits</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="d.completionRate"
+          [style.background]="scoreGradient(d.completionRate)"></div>
+      </div>
+      <div class="progress-labels">
+        <span>0%</span>
+        <span [style.color]="scoreColor(d.completionRate)">{{ d.completionRate }}%</span>
+        <span>100%</span>
+      </div>
+    </div>
+
+    <!-- Strongest / Weakest -->
+    <div class="two-col">
+      <div class="insight-card strong">
+        <div class="insight-label">💪 Strongest Habit</div>
+        @if (d.strongestHabit) {
+          <div class="insight-name">{{ d.strongestHabit.name }}</div>
+          <div class="insight-meta">
+            <span class="cat-dot" [style.background]="catColor(d.strongestHabit.category)"></span>
+            {{ d.strongestHabit.category }} · 🔥 {{ d.strongestHabit.streak }} day streak
+          </div>
+        } @else {
+          <div class="insight-empty">No completed habits yet</div>
+        }
+      </div>
+      <div class="insight-card weak">
+        <div class="insight-label">⚠️ Risk Habit</div>
+        @if (d.weakestHabit) {
+          <div class="insight-name">{{ d.weakestHabit.name }}</div>
+          <div class="insight-meta">
+            <span class="cat-dot" [style.background]="catColor(d.weakestHabit.category)"></span>
+            {{ d.weakestHabit.category }} · Needs attention
+          </div>
+        } @else {
+          <div class="insight-empty">All habits completed 🎉</div>
+        }
+      </div>
+    </div>
+
+    <!-- Time Pattern -->
+    @if (d.timePattern) {
+      <div class="section-card time-card">
+        <div class="time-icon">🕐</div>
+        <div class="time-body">
+          <div class="time-label">{{ d.timePattern.label }}</div>
+          <div class="time-suggestion">{{ d.timePattern.suggestion }}</div>
+        </div>
+      </div>
+    }
+
+    <!-- Category Breakdown -->
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-title">Category Breakdown</span>
+      </div>
+      <div class="cat-list">
+        @for (cat of d.categoryBreakdown; track cat.name) {
+          <div class="cat-row">
+            <div class="cat-info">
+              <span class="cat-dot" [style.background]="catColor(cat.name)"></span>
+              <span class="cat-name">{{ cat.name }}</span>
+              @if (cat.streak > 0) { <span class="cat-streak">🔥 {{ cat.streak }}</span> }
+            </div>
+            <div class="cat-bar-wrap">
+              <div class="cat-bar" [style.width.%]="cat.rate"
+                [style.background]="catColor(cat.name) + '99'"></div>
+            </div>
+            <span class="cat-pct" [style.color]="catColor(cat.name)">{{ cat.rate }}%</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Score Breakdown -->
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-title">Score Breakdown</span>
+      </div>
+      <div class="score-breakdown">
+        <div class="breakdown-row">
+          <span class="breakdown-label">Completion Rate</span>
+          <div class="breakdown-bar-wrap">
+            <div class="breakdown-bar" [style.width.%]="d.completionRate" style="background:#6c63ff"></div>
+          </div>
+          <span class="breakdown-val">{{ d.completionRate }}%</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Streak Consistency</span>
+          <div class="breakdown-bar-wrap">
+            <div class="breakdown-bar" [style.width.%]="d.streakConsistency" style="background:#f59e0b"></div>
+          </div>
+          <span class="breakdown-val">{{ d.streakConsistency }}%</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Community Activity</span>
+          <div class="breakdown-bar-wrap">
+            <div class="breakdown-bar" [style.width.%]="d.communityParticipation" style="background:#22c55e"></div>
+          </div>
+          <span class="breakdown-val">{{ d.communityParticipation }}%</span>
+        </div>
+      </div>
+      <p class="formula-note">Score = (Streak × 0.4) + (Completion × 0.4) + (Community × 0.2)</p>
+    </div>
+
+    <!-- AI Suggestions -->
+    @if (d.suggestions.length > 0) {
+      <div class="section-card suggestions-card">
+        <div class="section-head">
+          <span class="section-title">🤖 AI Suggestions</span>
+        </div>
+        <div class="suggestions-list">
+          @for (s of d.suggestions; track s) {
+            <div class="suggestion-item">
+              <span class="suggestion-dot">→</span>
+              <span>{{ s }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  }
+</div>

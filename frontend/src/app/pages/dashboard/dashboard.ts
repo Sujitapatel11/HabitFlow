@@ -4,6 +4,7 @@ import { HabitService } from '../../services/habit.service';
 import { AiMessageService } from '../../services/ai-message.service';
 import { NotificationService } from '../../services/notification.service';
 import { PeopleService } from '../../services/people.service';
+import { GamificationService } from '../../services/gamification.service';
 import { Habit } from '../../models/habit.model';
 import { AppUser, Connection } from '../../models/app-user.model';
 
@@ -34,6 +35,7 @@ export class Dashboard implements OnInit {
     private aiSvc: AiMessageService,
     private notifSvc: NotificationService,
     public peopleSvc: PeopleService,
+    public gameSvc: GamificationService,
   ) {}
 
   ngOnInit() {
@@ -68,5 +70,14 @@ export class Dashboard implements OnInit {
       Studying: '#48cae4', Mindfulness: '#ec4899', Nutrition: '#10b981', Other: '#94a3b8',
     };
     return m[cat] || '#94a3b8';
+  }
+
+  xpProgress(): number {
+    const s = this.gameSvc.stats();
+    const levels = [0, 100, 250, 500, 900, 1500];
+    const lvlIdx = s.level - 1;
+    const current = levels[lvlIdx] || 0;
+    const next = levels[lvlIdx + 1] || current + 100;
+    return Math.min(((s.xp - current) / (next - current)) * 100, 100);
   }
 }

@@ -1,8 +1,48 @@
 <div class="page">
+
+  <!-- XP / Level Bar -->
+  <div class="xp-bar-wrap">
+    <div class="xp-left">
+      <span class="level-badge">{{ gameSvc.stats().levelName }}</span>
+      <span class="xp-text">{{ gameSvc.stats().xp }} XP</span>
+    </div>
+    <div class="xp-track">
+      <div class="xp-fill" [style.width.%]="xpProgress()"></div>
+    </div>
+    <span class="xp-next">{{ gameSvc.stats().xpForNext }} XP</span>
+  </div>
+
+  <!-- Badge notification popup -->
+  @if (gameSvc.newBadge()) {
+    <div class="badge-popup">
+      <span class="badge-pop-icon">{{ gameSvc.newBadge()!.icon }}</span>
+      <div>
+        <div class="badge-pop-title">Badge Unlocked!</div>
+        <div class="badge-pop-name">{{ gameSvc.newBadge()!.name }}</div>
+      </div>
+    </div>
+  }
+
+  <!-- XP popup -->
+  @if (gameSvc.xpPopup().show) {
+    <div class="xp-popup">+{{ gameSvc.xpPopup().amount }} XP</div>
+  }
+
   <div class="page-header">
     <div><h1>My Habits</h1><p class="sub">Build consistency, one day at a time.</p></div>
     <button class="btn-primary" (click)="showForm.update(v => !v)">{{ showForm() ? '✕ Cancel' : '+ Add Habit' }}</button>
   </div>
+
+  <!-- Earned badges row -->
+  @if (gameSvc.stats().badges | earnedBadges; as earned) {
+    @if (earned.length > 0) {
+      <div class="badges-row">
+        @for (b of earned; track b.id) {
+          <div class="badge-chip" [title]="b.description">{{ b.icon }} {{ b.name }}</div>
+        }
+      </div>
+    }
+  }
 
   @if (error()) { <div class="error-banner">{{ error() }}</div> }
 
@@ -42,7 +82,7 @@
   } @else {
     <div class="habits-grid">
       @for (h of habits(); track h._id) {
-        <div class="habit-card" [class.completed]="h.completed">
+        <div class="habit-card" [class.completed]="h.completed" [class.completing]="completingId() === h._id">
           <div class="card-top">
             <span class="cat-tag" [style.background]="getCategoryColor(h.category)+'20'" [style.color]="getCategoryColor(h.category)">{{ h.category }}</span>
             <span class="streak">🔥 {{ h.streak }} days</span>
@@ -55,6 +95,9 @@
             </button>
             <button class="btn-del" (click)="delete(h._id)">🗑</button>
           </div>
+          @if (h.completed) {
+            <div class="done-overlay">✅</div>
+          }
         </div>
       }
     </div>

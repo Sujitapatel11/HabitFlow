@@ -37,4 +37,111 @@ h3.strike { text-decoration: line-through; color: #aaa; }
 .empty-state { text-align: center; padding: 4rem 2rem; color: #888; }
 .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
 .empty-state h3 { color: #1a1a2e; margin: 0 0 .5rem; }
-@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+/* Responsive */
+@media (max-width: 768px) {
+  .page { padding: 1.25rem 1rem; }
+  .habits-grid { grid-template-columns: 1fr; }
+  .xp-bar-wrap { flex-wrap: wrap; gap: .5rem; }
+  .xp-next { display: none; }
+}
+@media (max-width: 480px) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .page-header h1 { font-size: 1.4rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .badge-popup { left: 1rem; right: 1rem; bottom: 1rem; }
+  .xp-popup { right: 1rem; font-size: .95rem; }
+}
+
+/* XP Bar */
+.xp-bar-wrap {
+  display: flex; align-items: center; gap: .75rem;
+  background: #fff; border-radius: 12px; padding: .75rem 1.25rem;
+  margin-bottom: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  border: 1px solid #f0f0f5;
+}
+.xp-left { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+.level-badge {
+  font-size: .8rem; font-weight: 700; background: linear-gradient(135deg,#6c63ff,#48cae4);
+  color: #fff; padding: .25rem .75rem; border-radius: 99px;
+}
+.xp-text { font-size: .8rem; color: #888; font-weight: 600; }
+.xp-track {
+  flex: 1; height: 8px; background: #f0f0f5; border-radius: 99px; overflow: hidden;
+}
+.xp-fill {
+  height: 100%; background: linear-gradient(90deg,#6c63ff,#48cae4);
+  border-radius: 99px; transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+.xp-next { font-size: .75rem; color: #aaa; flex-shrink: 0; }
+
+/* Badge row */
+.badges-row {
+  display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.25rem;
+}
+.badge-chip {
+  font-size: .78rem; font-weight: 600; padding: .3rem .75rem;
+  background: linear-gradient(135deg,#fef3c7,#fde68a);
+  color: #92400e; border-radius: 99px; border: 1px solid #fcd34d;
+  animation: badgeIn .4s ease;
+}
+@keyframes badgeIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Badge unlock popup */
+.badge-popup {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+  background: linear-gradient(135deg,#1e293b,#0f172a);
+  color: #fff; border-radius: 16px; padding: 1rem 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  animation: slideUp .4s cubic-bezier(.4,0,.2,1);
+  border: 1px solid #6c63ff44;
+}
+.badge-pop-icon { font-size: 2rem; }
+.badge-pop-title { font-size: .7rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: .08em; }
+.badge-pop-name { font-size: 1rem; font-weight: 700; }
+@keyframes slideUp { from { transform: translateY(80px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* XP popup */
+.xp-popup {
+  position: fixed; top: 80px; right: 2rem; z-index: 999;
+  background: #6c63ff; color: #fff; font-weight: 800; font-size: 1.1rem;
+  padding: .5rem 1.25rem; border-radius: 99px;
+  animation: xpFloat 1.8s ease forwards;
+  pointer-events: none;
+}
+@keyframes xpFloat {
+  0%   { transform: translateY(0);   opacity: 1; }
+  100% { transform: translateY(-60px); opacity: 0; }
+}
+
+/* Card completing animation */
+.habit-card { position: relative; overflow: hidden; }
+.habit-card.completing {
+  animation: completePop .5s cubic-bezier(.4,0,.2,1);
+}
+@keyframes completePop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.06); box-shadow: 0 0 0 4px #22c55e44; }
+  100% { transform: scale(1); }
+}
+
+/* Done overlay checkmark */
+.done-overlay {
+  position: absolute; top: .5rem; right: .5rem;
+  font-size: 1.2rem; animation: popIn .3s ease;
+}
+@keyframes popIn {
+  from { transform: scale(0) rotate(-20deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0);      opacity: 1; }
+}
+
+/* Confetti */
+:global(.confetti-piece) {
+  position: fixed; top: -10px; z-index: 9999;
+  animation: confettiFall linear forwards;
+  pointer-events: none;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}

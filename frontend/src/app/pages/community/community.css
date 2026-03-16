@@ -56,3 +56,15 @@ textarea { resize: vertical; }
 }
 .btn-primary { background: #6c63ff; color: #fff; border: none; padding: .6rem 1.25rem; border-radius: 10px; font-size: .9rem; font-weight: 600; cursor: pointer; transition: background .2s; }
 .btn-primary:hover { background: #5a52e0; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page { padding: 1.25rem 1rem; }
+}
+@media (max-width: 480px) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .page-header h1 { font-size: 1.4rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .post-reactions { flex-wrap: wrap; gap: .4rem; }
+  .react-btn { font-size: .78rem; padding: .3rem .65rem; }
+}

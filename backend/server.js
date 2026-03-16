@@ -23,6 +23,8 @@ app.use('/api/groups', require('./routes/groupRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/app-users', require('./routes/appUserRoutes'));
 app.use('/api/connections', require('./routes/connectionRoutes'));
+app.use('/api/reflection', require('./routes/reflectionRoutes'));
+app.use('/api/contracts', require('./routes/contractRoutes'));
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 app.use(errorHandler);

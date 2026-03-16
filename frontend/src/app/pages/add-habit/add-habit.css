@@ -119,3 +119,9 @@ select { cursor: pointer; }
   font-weight: 500;
   text-align: center;
 }
+
+@media (max-width: 480px) {
+  .add-habit-page { margin: 1.5rem auto; padding: 0 1rem; }
+  .form-card { padding: 1.5rem 1.25rem; border-radius: 16px; }
+  .form-header h1 { font-size: 1.35rem; }
+}
