@@ -5,13 +5,6 @@ const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET 
 const ACCESS_TTL     = '15m';
 const REFRESH_TTL    = '7d';
 
-const COOKIE_OPTS = {
-  httpOnly: true,
-  secure:   process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-  path: '/',
-};
-
 function signAccess(payload) {
   return jwt.sign(payload, ACCESS_SECRET, { expiresIn: ACCESS_TTL });
 }
@@ -28,20 +21,26 @@ function verifyRefresh(token) {
   return jwt.verify(token, REFRESH_SECRET);
 }
 
-function setTokenCookies(res, userId, email) {
+/**
+ * Generate both tokens and return them.
+ * Tokens are returned in the response body — no cookies.
+ * This works reliably across all environments (dev proxy, cross-origin, mobile).
+ */
+function createTokens(userId, email) {
   const payload = { sub: userId, email };
-  const access  = signAccess(payload);
-  const refresh = signRefresh(payload);
+  return {
+    access:  signAccess(payload),
+    refresh: signRefresh(payload),
+  };
+}
 
-  res.cookie('hf_access',  access,  { ...COOKIE_OPTS, maxAge: 15 * 60 * 1000 });
-  res.cookie('hf_refresh', refresh, { ...COOKIE_OPTS, maxAge: 7 * 24 * 60 * 60 * 1000 });
-
-  return { access, refresh };
+// Keep cookie helpers as no-ops for backward compat (production migration path)
+function setTokenCookies(res, userId, email) {
+  return createTokens(userId, email);
 }
 
 function clearTokenCookies(res) {
-  res.clearCookie('hf_access',  COOKIE_OPTS);
-  res.clearCookie('hf_refresh', COOKIE_OPTS);
+  // no-op — tokens are in client storage, not cookies
 }
 
-module.exports = { signAccess, signRefresh, verifyAccess, verifyRefresh, setTokenCookies, clearTokenCookies };
+module.exports = { signAccess, signRefresh, verifyAccess, verifyRefresh, createTokens, setTokenCookies, clearTokenCookies };

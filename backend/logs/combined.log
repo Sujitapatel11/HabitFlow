@@ -373,3 +373,41 @@
 2026-03-24 22:29:21 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
 2026-03-24 22:29:21 [WARN] [Queue] No Redis — using inline job execution (dev only)
 2026-03-24 22:29:22 [INFO] MongoDB connected
+2026-03-24 22:29:52 [HTTP] ::1 - - [24/Mar/2026:16:59:52 +0000] "GET /api/messages/threads HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:29:52 [HTTP] ::1 - - [24/Mar/2026:16:59:52 +0000] "GET /api/app-users?exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:29:52 [HTTP] ::1 - - [24/Mar/2026:16:59:52 +0000] "GET /api/app-users/similar?goalCategory=Coding&exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:29:52 [HTTP] ::1 - - [24/Mar/2026:16:59:52 +0000] "GET /api/connections/my-connections HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:29:52 [HTTP] ::1 - - [24/Mar/2026:16:59:52 +0000] "GET /api/connections/pending HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:30:03 [HTTP] ::1 - - [24/Mar/2026:17:00:03 +0000] "GET /api/messages/threads HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:30:03 [HTTP] ::1 - - [24/Mar/2026:17:00:03 +0000] "POST /api/auth/refresh HTTP/1.1" 401 46 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:31:11 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:31:11 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:31:12 [INFO] MongoDB connected
+2026-03-24 22:31:12 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:31:12 [INFO] Server running on port 3001
+2026-03-24 22:32:11 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:32:11 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:32:11 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:32:11 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:32:12 [INFO] MongoDB connected
+2026-03-24 22:32:12 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:32:12 [INFO] Server running on port 3001
+2026-03-24 22:32:12 [INFO] MongoDB connected
+2026-03-24 22:32:23 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:32:23 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:32:24 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:32:24 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:32:24 [INFO] MongoDB connected
+2026-03-24 22:32:24 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:32:24 [INFO] Server running on port 3001
+2026-03-24 22:32:25 [INFO] MongoDB connected
+2026-03-24 22:33:02 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:33:02 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:33:06 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:33:06 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:33:06 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:33:06 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:33:07 [INFO] MongoDB connected
+2026-03-24 22:33:07 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:33:07 [INFO] Server running on port 3001
+2026-03-24 22:33:07 [INFO] MongoDB connected
