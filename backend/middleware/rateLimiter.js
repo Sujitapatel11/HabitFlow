@@ -7,7 +7,7 @@ const make = (windowMs, max, message) =>
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message },
-    validate: { xForwardedForHeader: false }, // suppress IPv6 warning in dev
+    validate: { xForwardedForHeader: false, trustProxy: false }, // suppress IPv6 warnings
     // Key by userId if available, else IP (handles IPv6 safely)
     keyGenerator: (req) => {
       const userId = req.user?.sub;

@@ -10,7 +10,11 @@
     </button>
   </div>
 
-  @if (error()) { <div class="error-banner" (click)="error.set('')">{{ error() }} ✕</div> }
+  @if (error()) {
+    <div class="error-banner" appShake [shakeOn]="error()" (click)="error.set('')">
+      ⚠ {{ error() }} — tap to dismiss
+    </div>
+  }
 
   <!-- Create Contract Form -->
   @if (showForm()) {

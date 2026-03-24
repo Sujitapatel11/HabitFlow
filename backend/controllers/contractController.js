@@ -1,18 +1,27 @@
 /**
  * contractController.js — PledgeUp core
- * Tiers: honor (rep stake) | reputation (permanent | stakes (Stripe escrow)
  */
 const Contract   = require('../models/Contract');
 const AppUser    = require('../models/AppUser');
 const Connection = require('../models/Connection');
 const Post       = require('../models/Post');
-const { emailQueue } = require('../services/queues');
 const logger     = require('../services/logger');
 
-// nanoid for public slugs (ESM — use dynamic import shim)
-let _nanoid;
-const getNanoid = async () => {
-  if (!_nanoid) { const m = await import('nanoid'); _nanoid = m.nanoid; }
+const utcDay = (d = new Date()) => {
+  const t = new Date(d);
+  t.setUTCHours(0, 0, 0, 0);
+  return t;
+};
+
+/** POST /api/contracts */
+const createContract = async (req, res, next) => {
+  try {
+    const userId = req.user.sub;
+    const { habitId, habitName, category, durationDays, stakePoints } = req.body;
+    if (!habitId || !habitName || !durationDays)
+      return res.status(400).json({ success: false, message: 'habitId, habitName, durationDays required' });
+
+    const existing = await Contract.findOne({ userId, habitId, status: 'active' });
     if (existing)
       return res.status(400).json({ success: false, message: 'Active contract already exists for this habit' });
 
@@ -66,7 +75,6 @@ const checkIn = async (req, res, next) => {
     if (contract.status !== 'active')
       return res.status(400).json({ success: false, message: 'Contract is not active' });
 
-    // Server-side: one check-in per UTC day
     const todayUTC = utcDay();
     const alreadyCheckedIn = contract.checkIns.some(c => utcDay(c.date).getTime() === todayUTC.getTime());
     if (alreadyCheckedIn)
@@ -103,7 +111,6 @@ const witnessVote = async (req, res, next) => {
     if (contract.userId === voterId)
       return res.status(400).json({ success: false, message: 'Cannot witness your own contract' });
 
-    // ── Anti-collusion: voter must be a connection of the contract owner ──
     const isConnected = await Connection.findOne({
       $or: [
         { senderId: voterId, receiverId: contract.userId, status: 'accepted' },
@@ -113,14 +120,11 @@ const witnessVote = async (req, res, next) => {
     if (!isConnected)
       return res.status(403).json({ success: false, message: 'Only connections can witness contracts' });
 
-    // One vote per user per contract
     const alreadyVoted = contract.witnesses.find(w => w.userId === voterId);
     if (alreadyVoted)
       return res.status(400).json({ success: false, message: 'Already voted on this contract' });
 
     const voter = await AppUser.findById(voterId).lean();
-
-    // ── Vote weight based on voter reputation (streak) ────────────────
     const weight = Math.min(3, 1 + Math.floor((voter.streak || 0) / 10));
 
     contract.witnesses.push({ userId: voterId, userName: voter.name, vote, weight, votedAt: new Date() });
@@ -138,7 +142,7 @@ const witnessVote = async (req, res, next) => {
             habitName: contract.habitName, category: contract.category, type: 'manual',
             message: `⚠️ ${contract.userName}'s contract for "${contract.habitName}" was broken by community doubt on day ${contract.completedDays}.`,
           });
-          logger.warn(`[Contract] Broken by doubt: ${contract._id} owner=${contract.userId}`);
+          logger.warn(`[Contract] Broken by doubt: ${contract._id}`);
         }
       }
     }

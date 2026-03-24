@@ -30,8 +30,8 @@ const contractSchema = new mongoose.Schema(
       default: 'none',
     },
 
-    // Public pledge page
-    publicSlug:   { type: String, unique: true, sparse: true, index: true },
+    // Public pledge page — sparse: true already prevents duplicate nulls, remove redundant index
+    publicSlug:   { type: String, unique: true, sparse: true },
     isPublic:     { type: Boolean, default: true },
 
     // Invited witnesses (email invites for non-users)
