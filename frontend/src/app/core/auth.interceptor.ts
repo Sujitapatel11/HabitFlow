@@ -6,24 +6,35 @@ import { AuthService } from './auth.service';
 let isRefreshing = false;
 
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
-  // Always send cookies with every request to the API
-  const credReq = req.clone({ withCredentials: true });
+  const auth = inject(AuthService);
+
+  // Attach Bearer token if we have one in memory (dev proxy mode)
+  // Also always send cookies for HTTP-only cookie mode (production)
+  const token = auth.accessToken;
+  const credReq = req.clone({
+    withCredentials: true,
+    ...(token ? { setHeaders: { Authorization: `Bearer ${token}` } } : {}),
+  });
 
   return next(credReq).pipe(
     catchError((err: HttpErrorResponse) => {
       // On 401, attempt one silent token refresh then retry
       if (err.status === 401 && !req.url.includes('/auth/refresh') && !isRefreshing) {
         isRefreshing = true;
-        const auth = inject(AuthService);
 
         return auth.refreshToken().pipe(
           switchMap(() => {
             isRefreshing = false;
-            return next(credReq);
+            // Retry with new token
+            const newToken = auth.accessToken;
+            const retryReq = req.clone({
+              withCredentials: true,
+              ...(newToken ? { setHeaders: { Authorization: `Bearer ${newToken}` } } : {}),
+            });
+            return next(retryReq);
           }),
           catchError(() => {
             isRefreshing = false;
-            // Refresh failed — session is dead, redirect to login
             auth.clearSession();
             return throwError(() => new HttpErrorResponse({ status: 401 }));
           })

@@ -7,12 +7,11 @@ const make = (windowMs, max, message) =>
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message },
-    // Key by userId if authenticated, else by IP
+    validate: { xForwardedForHeader: false }, // suppress ERR_ERL_KEY_GEN_IPV6
     keyGenerator: (req) => {
       const userId = req.user?.sub;
       if (userId) return userId;
-      // Normalize IPv6-mapped IPv4 addresses
-      const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+      const ip = req.ip || req.socket?.remoteAddress || 'unknown';
       return ip.replace(/^::ffff:/, '');
     },
   });

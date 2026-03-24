@@ -11,8 +11,13 @@ export class AuthService {
   private readonly api = `${environment.apiUrl}/auth`;
 
   // Non-sensitive user info cached in memory (NOT localStorage)
-  // Tokens live in HTTP-only cookies — never accessible to JS
   currentUser = signal<AppUser | null>(this.loadUser());
+
+  // Access token stored in memory only (not localStorage, not a cookie we can read)
+  // Used as Bearer header since HTTP-only cookies don't survive the dev proxy
+  private _accessToken: string | null = null;
+
+  get accessToken(): string | null { return this._accessToken; }
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -23,17 +28,23 @@ export class AuthService {
   }
 
   login(email: string, password: string) {
-    return this.http.post<{ success: boolean; data: AppUser }>(
+    return this.http.post<{ success: boolean; data: AppUser; accessToken?: string }>(
       `${this.api}/login`, { email, password }, { withCredentials: true }
-    ).pipe(tap(res => this.saveSession(res.data)));
+    ).pipe(tap(res => {
+      if (res.accessToken) this._accessToken = res.accessToken;
+      this.saveSession(res.data);
+    }));
   }
 
   /** Silently refresh access token using the HTTP-only refresh cookie */
-  refreshToken(): Observable<{ success: boolean; data: AppUser }> {
-    return this.http.post<{ success: boolean; data: AppUser }>(
+  refreshToken(): Observable<{ success: boolean; data: AppUser; accessToken?: string }> {
+    return this.http.post<{ success: boolean; data: AppUser; accessToken?: string }>(
       `${this.api}/refresh`, {}, { withCredentials: true }
     ).pipe(
-      tap(res => this.saveSession(res.data)),
+      tap(res => {
+        if (res.accessToken) this._accessToken = res.accessToken;
+        this.saveSession(res.data);
+      }),
       catchError(err => {
         this.clearSession();
         return throwError(() => err);
@@ -92,12 +103,12 @@ export class AuthService {
   isLoggedIn(): boolean { return !!this.currentUser(); }
 
   private saveSession(user: AppUser) {
-    // Store only non-sensitive display info — tokens are in HTTP-only cookies
     localStorage.setItem('hf_user', JSON.stringify(user));
     this.currentUser.set(user);
   }
 
   clearSession() {
+    this._accessToken = null;
     localStorage.removeItem('hf_user');
     this.currentUser.set(null);
     this.router.navigate(['/login']);

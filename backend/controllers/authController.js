@@ -127,7 +127,7 @@ const login = async (req, res, next) => {
     user.lockoutUntil  = null;
     await user.save({ validateBeforeSave: false });
 
-    const { refresh } = setTokenCookies(res, user._id.toString(), user.email);
+    const { access, refresh } = setTokenCookies(res, user._id.toString(), user.email);
     await RefreshToken.create({
       userId: user._id,
       tokenHash: hashToken(refresh),
@@ -135,7 +135,9 @@ const login = async (req, res, next) => {
     });
 
     logger.info(`[Auth] Login: ${email}`);
-    res.json({ success: true, data: safeUser(user) });
+    // Return accessToken in body as fallback for dev proxy environments
+    // where HTTP-only cookies may not survive the proxy hop
+    res.json({ success: true, data: safeUser(user), accessToken: access });
   } catch (err) { next(err); }
 };
 
@@ -158,14 +160,14 @@ const refresh = async (req, res, next) => {
     const user = await AppUser.findById(decoded.sub).lean();
     if (!user) return res.status(401).json({ success: false, message: 'User not found' });
 
-    const { refresh: newRefresh } = setTokenCookies(res, user._id.toString(), user.email);
+    const { access: newAccess, refresh: newRefresh } = setTokenCookies(res, user._id.toString(), user.email);
     await RefreshToken.create({
       userId: user._id,
       tokenHash: hashToken(newRefresh),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
-    res.json({ success: true, data: safeUser(user) });
+    res.json({ success: true, data: safeUser(user), accessToken: newAccess });
   } catch (err) { next(err); }
 };
 

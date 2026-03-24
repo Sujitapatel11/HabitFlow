@@ -293,3 +293,83 @@
 2026-03-24 21:57:20 [HTTP] ::1 - - [24/Mar/2026:16:27:20 +0000] "GET /api/messages/threads HTTP/1.1" 401 47 "http://localhost:4200/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
 2026-03-24 21:57:21 [HTTP] ::1 - - [24/Mar/2026:16:27:21 +0000] "GET /api/messages/threads HTTP/1.1" 401 47 "http://localhost:4200/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
 2026-03-24 22:17:39 [HTTP] ::1 - - [24/Mar/2026:16:47:39 +0000] "POST /api/auth/login HTTP/1.1" 401 49 "-" "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-IN) WindowsPowerShell/5.1.22621.6133"
+2026-03-24 22:18:16 [HTTP] ::1 - - [24/Mar/2026:16:48:16 +0000] "POST /api/auth/login HTTP/1.1" 401 49 "-" "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-IN) WindowsPowerShell/5.1.22621.6133"
+2026-03-24 22:18:24 [HTTP] ::1 - - [24/Mar/2026:16:48:24 +0000] "POST /api/auth/login HTTP/1.1" 401 49 "-" "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-IN) WindowsPowerShell/5.1.22621.6133"
+2026-03-24 22:22:01 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:22:02 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:22:03 [INFO] MongoDB connected
+2026-03-24 22:22:25 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:22:25 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:22:26 [INFO] MongoDB connected
+2026-03-24 22:22:26 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:22:26 [INFO] Server running on port 3001
+2026-03-24 22:23:43 [HTTP] ::1 - - [24/Mar/2026:16:53:43 +0000] "GET /api/messages/threads HTTP/1.1" 401 47 "http://localhost:4200/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:23:44 [HTTP] ::1 - - [24/Mar/2026:16:53:44 +0000] "GET /api/habits HTTP/1.1" 401 47 "http://localhost:4200/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:23:44 [HTTP] ::1 - - [24/Mar/2026:16:53:44 +0000] "GET /api/app-users/similar?goalCategory=Coding&exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:23:44 [HTTP] ::1 - - [24/Mar/2026:16:53:44 +0000] "GET /api/connections/my-connections HTTP/1.1" 401 47 "http://localhost:4200/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:23:49 [HTTP] ::1 - - [24/Mar/2026:16:53:49 +0000] "GET /api/messages/threads HTTP/1.1" 401 47 "http://localhost:4200/chat" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:23:51 [HTTP] ::1 - - [24/Mar/2026:16:53:51 +0000] "GET /api/app-users?exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:23:51 [HTTP] ::1 - - [24/Mar/2026:16:53:51 +0000] "GET /api/app-users/similar?goalCategory=Coding&exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:23:51 [HTTP] ::1 - - [24/Mar/2026:16:53:51 +0000] "GET /api/connections/my-connections HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:23:51 [HTTP] ::1 - - [24/Mar/2026:16:53:51 +0000] "GET /api/connections/pending HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:18 [HTTP] ::1 - - [24/Mar/2026:16:54:18 +0000] "GET /api/connections/my-connections HTTP/1.1" 401 47 "http://localhost:4200/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:18 [HTTP] ::1 - - [24/Mar/2026:16:54:18 +0000] "GET /api/app-users/similar?goalCategory=Coding&exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:18 [HTTP] ::1 - - [24/Mar/2026:16:54:18 +0000] "GET /api/habits HTTP/1.1" 401 47 "http://localhost:4200/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:26 [HTTP] ::1 - - [24/Mar/2026:16:54:26 +0000] "GET /api/habits HTTP/1.1" 401 47 "http://localhost:4200/habits" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:32 [HTTP] ::1 - - [24/Mar/2026:16:54:32 +0000] "GET /api/habits HTTP/1.1" 401 47 "http://localhost:4200/contracts" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:32 [HTTP] ::1 - - [24/Mar/2026:16:54:32 +0000] "GET /api/contracts HTTP/1.1" 401 47 "http://localhost:4200/contracts" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:32 [HTTP] ::1 - - [24/Mar/2026:16:54:32 +0000] "GET /api/contracts/feed HTTP/1.1" 401 47 "http://localhost:4200/contracts" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:52 [HTTP] ::1 - - [24/Mar/2026:16:54:52 +0000] "GET /api/messages/threads HTTP/1.1" 401 47 "http://localhost:4200/chat" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:54 [HTTP] ::1 - - [24/Mar/2026:16:54:54 +0000] "GET /api/habits HTTP/1.1" 401 47 "http://localhost:4200/contracts" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:54 [HTTP] ::1 - - [24/Mar/2026:16:54:54 +0000] "GET /api/contracts HTTP/1.1" 401 47 "http://localhost:4200/contracts" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:54 [HTTP] ::1 - - [24/Mar/2026:16:54:54 +0000] "GET /api/contracts/feed HTTP/1.1" 401 47 "http://localhost:4200/contracts" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:55 [HTTP] ::1 - - [24/Mar/2026:16:54:55 +0000] "GET /api/app-users?exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:55 [HTTP] ::1 - - [24/Mar/2026:16:54:55 +0000] "GET /api/app-users/similar?goalCategory=Coding&exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:55 [HTTP] ::1 - - [24/Mar/2026:16:54:55 +0000] "GET /api/connections/my-connections HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:55 [HTTP] ::1 - - [24/Mar/2026:16:54:55 +0000] "GET /api/connections/pending HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:24:56 [HTTP] ::1 - - [24/Mar/2026:16:54:56 +0000] "GET /api/users/leaderboard HTTP/1.1" 200 41 "http://localhost:4200/leaderboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:14 [HTTP] ::1 - - [24/Mar/2026:16:57:14 +0000] "GET /api/groups HTTP/1.1" 200 277 "http://localhost:4200/groups" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:14 [HTTP] ::1 - - [24/Mar/2026:16:57:14 +0000] "GET /api/posts?page=1 HTTP/1.1" 200 1139 "http://localhost:4200/groups" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:17 [HTTP] ::1 - - [24/Mar/2026:16:57:17 +0000] "GET /api/users/leaderboard HTTP/1.1" 304 - "http://localhost:4200/leaderboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:19 [HTTP] ::1 - - [24/Mar/2026:16:57:19 +0000] "GET /api/posts?page=1 HTTP/1.1" 304 - "http://localhost:4200/community" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:22 [HTTP] ::1 - - [24/Mar/2026:16:57:22 +0000] "GET /api/habits HTTP/1.1" 401 47 "http://localhost:4200/habits" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:30 [HTTP] ::1 - - [24/Mar/2026:16:57:30 +0000] "GET /api/habits HTTP/1.1" 401 47 "http://localhost:4200/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:30 [HTTP] ::1 - - [24/Mar/2026:16:57:30 +0000] "GET /api/app-users/similar?goalCategory=Coding&exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:30 [HTTP] ::1 - - [24/Mar/2026:16:57:30 +0000] "GET /api/connections/my-connections HTTP/1.1" 401 47 "http://localhost:4200/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:34 [HTTP] ::1 - - [24/Mar/2026:16:57:34 +0000] "GET /api/messages/threads HTTP/1.1" 401 47 "http://localhost:4200/chat" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:37 [HTTP] ::1 - - [24/Mar/2026:16:57:37 +0000] "GET /api/app-users/similar?goalCategory=Coding&exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:38 [HTTP] ::1 - - [24/Mar/2026:16:57:38 +0000] "GET /api/app-users?exclude=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:38 [HTTP] ::1 - - [24/Mar/2026:16:57:38 +0000] "GET /api/connections/my-connections HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:27:38 [HTTP] ::1 - - [24/Mar/2026:16:57:38 +0000] "GET /api/connections/pending HTTP/1.1" 401 47 "http://localhost:4200/find-users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 22:28:52 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:28:52 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:28:52 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:28:53 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:28:53 [INFO] MongoDB connected
+2026-03-24 22:28:53 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:28:53 [INFO] Server running on port 3001
+2026-03-24 22:28:54 [INFO] MongoDB connected
+2026-03-24 22:29:04 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:29:04 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:29:04 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:29:04 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:29:05 [INFO] MongoDB connected
+2026-03-24 22:29:05 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:29:05 [INFO] Server running on port 3001
+2026-03-24 22:29:05 [INFO] MongoDB connected
+2026-03-24 22:29:13 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:29:13 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:29:13 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:29:13 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:29:14 [INFO] MongoDB connected
+2026-03-24 22:29:14 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:29:14 [INFO] Server running on port 3001
+2026-03-24 22:29:16 [INFO] MongoDB connected
+2026-03-24 22:29:20 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:29:20 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:29:21 [INFO] MongoDB connected
+2026-03-24 22:29:21 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:29:21 [INFO] Server running on port 3001
+2026-03-24 22:29:21 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:29:21 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:29:22 [INFO] MongoDB connected
