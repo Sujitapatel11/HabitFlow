@@ -44,7 +44,7 @@ export class ChatService {
     if (this.socket?.connected) return;
     if (!this.auth.currentUser()?._id) return;
 
-    this.socket = io(environment.apiUrl.replace('/api', ''), {
+    this.socket = io(environment.socketUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,
