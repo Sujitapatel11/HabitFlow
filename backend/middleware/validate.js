@@ -19,7 +19,16 @@ const schemas = {
   register: Joi.object({
     name:         Joi.string().trim().min(2).max(60).required(),
     email:        Joi.string().email().lowercase().trim().required(),
-    password:     Joi.string().min(6).max(128).required(),
+    password:     Joi.string().min(8).max(128)
+      .pattern(/[A-Z]/, 'uppercase')
+      .pattern(/[a-z]/, 'lowercase')
+      .pattern(/[0-9]/, 'number')
+      .pattern(/[^A-Za-z0-9]/, 'symbol')
+      .required()
+      .messages({
+        'string.pattern.name': 'Password must contain at least one {{#name}} character',
+        'string.min': 'Password must be at least 8 characters',
+      }),
     goalCategory: Joi.string().valid(...CATEGORIES).default('Other'),
     bio:          Joi.string().max(200).allow('').default(''),
   }),
@@ -36,7 +45,10 @@ const schemas = {
   resetPassword: Joi.object({
     email:       Joi.string().email().lowercase().trim().required(),
     otp:         Joi.string().length(6).pattern(/^\d+$/).required(),
-    newPassword: Joi.string().min(6).max(128).required(),
+    newPassword: Joi.string().min(8).max(128)
+      .pattern(/[A-Z]/, 'uppercase').pattern(/[a-z]/, 'lowercase')
+      .pattern(/[0-9]/, 'number').pattern(/[^A-Za-z0-9]/, 'symbol')
+      .required(),
   }),
 
   createHabit: Joi.object({

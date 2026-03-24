@@ -1,0 +1,223 @@
+/* ── Progression Bar ─────────────────────────────────────────────────────── */
+.prog-bar-wrap {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: .85rem 1.25rem;
+  margin-bottom: 1.5rem; position: relative; overflow: hidden;
+}
+/* Rank-colored left accent */
+.prog-bar-wrap::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--rank-color, var(--cyan));
+  box-shadow: 0 0 12px var(--rank-color, var(--cyan));
+  transition: background .6s ease, box-shadow .6s ease;
+}
+
+/* Rank info */
+.prog-rank { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+.rank-icon { font-size: 1.5rem; filter: drop-shadow(0 0 6px var(--rank-color, var(--cyan))); }
+.rank-info { display: flex; flex-direction: column; }
+.rank-name { font-size: .78rem; font-weight: 700; color: var(--text); letter-spacing: .04em; }
+.rank-xp   { font-size: .7rem; color: var(--text-2); }
+.rank-xp em { color: var(--rank-color, var(--cyan)); font-style: normal; font-weight: 700; }
+
+/* Track */
+.prog-track-wrap { flex: 1; }
+.prog-track {
+  height: 8px; background: var(--border); border-radius: 99px;
+  overflow: hidden; position: relative;
+}
+.prog-fill {
+  height: 100%; border-radius: 99px; position: relative;
+  background: linear-gradient(90deg, var(--rank-color, var(--cyan)), color-mix(in srgb, var(--rank-color, var(--cyan)) 60%, #fff));
+  box-shadow: 0 0 10px var(--rank-color, var(--cyan));
+  transition: width 700ms cubic-bezier(.4,0,.2,1);
+}
+/* Energy particles flowing inside the bar */
+.prog-particles {
+  position: absolute; inset: 0; overflow: hidden; border-radius: 99px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px, transparent 12px,
+    rgba(255,255,255,.18) 12px, rgba(255,255,255,.18) 14px
+  );
+  animation: particleFlow 1.2s linear infinite;
+}
+@keyframes particleFlow {
+  from { background-position: 0 0; }
+  to   { background-position: 28px 0; }
+}
+.prog-labels {
+  display: flex; justify-content: space-between;
+  font-size: .65rem; color: var(--text-3); margin-top: .3rem;
+}
+
+/* ── Reactor Streak Ring ─────────────────────────────────────────────────── */
+.reactor-wrap {
+  position: relative; width: 44px; height: 44px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.reactor-svg { width: 44px; height: 44px; transform: rotate(-90deg); }
+.reactor-track {
+  fill: none; stroke: var(--border); stroke-width: 3;
+}
+.reactor-fill {
+  fill: none; stroke-width: 3; stroke-linecap: round;
+  stroke-dasharray: 113.1;
+  transition: stroke-dashoffset 700ms cubic-bezier(.4,0,.2,1), stroke .4s ease;
+}
+.reactor-label {
+  position: absolute; font-size: .65rem; font-weight: 800;
+  color: var(--text); line-height: 1;
+}
+.reactor-glow {
+  position: absolute; inset: 4px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,136,.12) 0%, transparent 70%);
+  animation: reactorPulse 2s ease-in-out infinite;
+}
+@keyframes reactorPulse {
+  0%,100% { opacity: .6; transform: scale(1); }
+  50%     { opacity: 1;  transform: scale(1.15); }
+}
+.reactor-hot  .reactor-glow { background: radial-gradient(circle, rgba(255,184,0,.18) 0%, transparent 70%); }
+.reactor-max  .reactor-glow { background: radial-gradient(circle, rgba(255,59,92,.22) 0%, transparent 70%); }
+.reactor-hot  .reactor-label { color: var(--amber); }
+.reactor-max  .reactor-label { color: var(--red); }
+.reactor-max .reactor-wrap { animation: reactorPulse 1s ease-in-out infinite; }
+
+/* ── XP Energy Particle Popup ────────────────────────────────────────────── */
+@keyframes energyFloat {
+  0%   { opacity: 0; transform: translateY(0) scale(.8); }
+  15%  { opacity: 1; transform: translateY(-8px) scale(1.05); }
+  70%  { opacity: 1; transform: translateY(-60px) scale(1); }
+  100% { opacity: 0; transform: translateY(-90px) scale(.85); }
+}
+.xp-energy-popup {
+  position: fixed; top: 72px; right: 28px; z-index: 9100;
+  background: var(--surface-2); border: 1px solid var(--cyan);
+  color: var(--cyan); font-weight: 800; font-size: 1.05rem;
+  padding: .45rem 1rem; border-radius: var(--r-lg);
+  box-shadow: var(--glow-cyan);
+  animation: energyFloat 2s ease-out forwards;
+  pointer-events: none;
+  display: flex; align-items: center; gap: .5rem;
+}
+.xp-energy-popup em { font-style: normal; font-size: .75rem; opacity: .8; }
+.xp-particles-wrap { display: flex; gap: 3px; }
+.xp-orb {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cyan); display: block;
+  animation: orbPop .4s ease-out both;
+  box-shadow: 0 0 6px var(--cyan);
+}
+.xp-orb-2 { animation-delay: .08s; background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+.xp-orb-3 { animation-delay: .16s; background: var(--green);  box-shadow: 0 0 6px var(--green); }
+@keyframes orbPop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.4); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* ── Level-Up Explosion ──────────────────────────────────────────────────── */
+.levelup-overlay {
+  position: fixed; inset: 0; z-index: 9500;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.7) 0%, rgba(0,0,0,.4) 100%);
+  animation: overlayFade 5s ease forwards;
+}
+@keyframes overlayFade {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.levelup-ring {
+  position: absolute; width: 300px; height: 300px; border-radius: 50%;
+  border: 2px solid var(--cyan); opacity: 0;
+  animation: ringExpand 1.2s ease-out .1s forwards;
+}
+.levelup-ring-2 {
+  width: 500px; height: 500px;
+  border-color: var(--purple);
+  animation: ringExpand 1.4s ease-out .3s forwards;
+}
+@keyframes ringExpand {
+  0%   { transform: scale(0); opacity: .9; }
+  100% { transform: scale(1); opacity: 0; }
+}
+.levelup-card {
+  background: var(--surface); border: 1px solid var(--rank-color, var(--cyan));
+  border-radius: var(--r-xl); padding: 2.5rem 3rem;
+  text-align: center; position: relative;
+  box-shadow: 0 0 60px var(--rank-color, var(--cyan)), 0 0 120px rgba(0,0,0,.8);
+  animation: cardPop .5s cubic-bezier(.34,1.56,.64,1) .15s both;
+}
+@keyframes cardPop {
+  from { transform: scale(.4); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+.levelup-icon {
+  font-size: 4rem; display: block; margin-bottom: .5rem;
+  filter: drop-shadow(0 0 20px var(--rank-color, var(--cyan)));
+  animation: iconFloat 1s ease-in-out .5s infinite alternate;
+}
+@keyframes iconFloat {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-8px); }
+}
+.levelup-label {
+  font-size: .7rem; font-weight: 800; letter-spacing: .2em;
+  color: var(--rank-color, var(--cyan)); text-transform: uppercase; margin-bottom: .4rem;
+}
+.levelup-name {
+  font-size: 1.8rem; font-weight: 800; color: var(--text); margin-bottom: .3rem;
+}
+.levelup-sub { font-size: .8rem; color: var(--text-2); }
+
+/* ── Badge Hologram ──────────────────────────────────────────────────────── */
+@keyframes holoSlide {
+  0%   { opacity: 0; transform: translateX(140px) skewX(-4deg); }
+  12%  { opacity: 1; transform: translateX(0) skewX(0); }
+  80%  { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(140px); }
+}
+.hologram-wrap {
+  position: fixed; bottom: 28px; right: 28px; z-index: 9200;
+  animation: holoSlide 4.5s ease-in-out forwards;
+  pointer-events: none;
+}
+.hologram-scan {
+  position: absolute; inset: 0; border-radius: var(--r-lg); overflow: hidden;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px, transparent 3px,
+    rgba(0,212,255,.04) 3px, rgba(0,212,255,.04) 4px
+  );
+  animation: scanMove 2s linear infinite;
+  pointer-events: none;
+}
+@keyframes scanMove {
+  from { background-position: 0 0; }
+  to   { background-position: 0 40px; }
+}
+.hologram-badge {
+  background: rgba(15,17,40,.92); backdrop-filter: blur(12px);
+  border: 1px solid var(--purple); border-radius: var(--r-lg);
+  padding: 1rem 1.25rem; display: flex; align-items: center; gap: .9rem;
+  box-shadow: 0 0 30px rgba(191,95,255,.3), 0 0 60px rgba(191,95,255,.1);
+  min-width: 230px;
+}
+.holo-icon { font-size: 2.2rem; filter: drop-shadow(0 0 10px var(--purple)); }
+.holo-text { display: flex; flex-direction: column; gap: .15rem; }
+.holo-label { font-size: .6rem; font-weight: 800; color: var(--purple); text-transform: uppercase; letter-spacing: .1em; }
+.holo-name  { font-size: .95rem; font-weight: 700; color: var(--text); }
+.holo-desc  { font-size: .72rem; color: var(--text-2); }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .prog-bar-wrap { flex-wrap: wrap; gap: .75rem; }
+  .prog-track-wrap { order: 3; width: 100%; }
+  .levelup-card { padding: 1.75rem 2rem; }
+  .levelup-name { font-size: 1.4rem; }
+}

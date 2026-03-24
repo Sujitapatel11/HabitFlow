@@ -1,40 +1,76 @@
-const crypto = require('crypto');
-const AppUser = require('../models/AppUser');
+const crypto   = require('crypto');
+const AppUser   = require('../models/AppUser');
 const RefreshToken = require('../models/RefreshToken');
-const { setTokenCookies, clearTokenCookies, verifyRefresh, signAccess } = require('../services/tokenService');
-const { sendOtpEmail } = require('../services/emailService');
-const logger = require('../services/logger');
+const { setTokenCookies, clearTokenCookies, verifyRefresh } = require('../services/tokenService');
+const { sendOtpEmail, sendVerificationEmail } = require('../services/emailService');
+const logger    = require('../services/logger');
 
-const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
-const hashToken  = (t) => crypto.createHash('sha256').update(t).digest('hex');
+const MAX_ATTEMPTS  = 5;
+const LOCKOUT_MS    = 15 * 60 * 1000; // 15 min
+const OTP_TTL_MS    = 10 * 60 * 1000; // 10 min
+const VERIFY_TTL_MS = 15 * 60 * 1000; // 15 min
+
+const generateOtp   = () => String(Math.floor(100000 + Math.random() * 900000));
+const hashToken     = (t) => crypto.createHash('sha256').update(t).digest('hex');
+const randomToken   = () => crypto.randomBytes(32).toString('hex');
 
 const safeUser = (u) => ({
   _id: u._id, name: u.name, email: u.email,
   goalCategory: u.goalCategory, bio: u.bio,
-  streak: u.streak, avatar: u.avatar, createdAt: u.createdAt,
+  streak: u.streak, avatar: u.avatar,
+  isVerified: u.isVerified, createdAt: u.createdAt,
 });
 
 /** POST /api/auth/register */
 const register = async (req, res, next) => {
   try {
-    // req.body already validated + sanitized by Joi middleware
     const { name, email, password, goalCategory, bio } = req.body;
 
-    const exists = await AppUser.findOne({ email });
-    if (exists)
+    if (await AppUser.findOne({ email }))
       return res.status(400).json({ success: false, message: 'Email already registered' });
 
-    const user = await AppUser.create({ name, email, password, goalCategory, bio });
-
-    const { refresh } = setTokenCookies(res, user._id.toString(), user.email);
-    await RefreshToken.create({
-      userId: user._id,
-      tokenHash: hashToken(refresh),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    const verifyToken  = randomToken();
+    const user = await AppUser.create({
+      name, email, password, goalCategory, bio,
+      isVerified: false,
+      verifyToken: hashToken(verifyToken),
+      verifyTokenExpiry: new Date(Date.now() + VERIFY_TTL_MS),
     });
 
-    logger.info(`[Auth] Registered: ${email}`);
-    res.status(201).json({ success: true, data: safeUser(user) });
+    await sendVerificationEmail(email, verifyToken, name);
+    logger.info(`[Auth] Registered: ${email} — verification email sent`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Account created. Check your email to verify before logging in.',
+      data: safeUser(user),
+    });
+  } catch (err) { next(err); }
+};
+
+/** GET /api/auth/verify-email?token=... */
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ success: false, message: 'Token required' });
+
+    const hashed = hashToken(token);
+    const user = await AppUser.findOne({
+      verifyToken: hashed,
+      verifyTokenExpiry: { $gt: new Date() },
+    });
+
+    if (!user)
+      return res.status(400).json({ success: false, message: 'Verification link is invalid or expired' });
+
+    user.isVerified       = true;
+    user.verifyToken      = null;
+    user.verifyTokenExpiry = null;
+    await user.save({ validateBeforeSave: false });
+
+    logger.info(`[Auth] Email verified: ${user.email}`);
+    // Redirect to frontend with success flag
+    res.redirect(`${process.env.FRONTEND_URL}/login?verified=1`);
   } catch (err) { next(err); }
 };
 
@@ -43,13 +79,46 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await AppUser.findOne({ email });
-    if (!user)
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    const user = await AppUser.findOne({ email })
+      .select('+password +loginAttempts +lockoutUntil');
+
+    // Generic message — don't reveal whether email exists
+    const FAIL = () => res.status(401).json({ success: false, message: 'Invalid credentials' });
+
+    if (!user) return FAIL();
+
+    // Brute-force lockout check
+    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+      const mins = Math.ceil((user.lockoutUntil - Date.now()) / 60000);
+      return res.status(429).json({
+        success: false,
+        message: `Account locked. Try again in ${mins} minute${mins > 1 ? 's' : ''}.`,
+      });
+    }
+
+    if (!user.isVerified)
+      return res.status(403).json({ success: false, message: 'Please verify your email before logging in.' });
 
     const match = await user.matchPassword(password);
-    if (!match)
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    if (!match) {
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+      if (user.loginAttempts >= MAX_ATTEMPTS) {
+        user.lockoutUntil  = new Date(Date.now() + LOCKOUT_MS);
+        user.loginAttempts = 0;
+        await user.save({ validateBeforeSave: false });
+        return res.status(429).json({
+          success: false,
+          message: `Too many failed attempts. Account locked for 15 minutes.`,
+        });
+      }
+      await user.save({ validateBeforeSave: false });
+      return FAIL();
+    }
+
+    // Success — reset counters
+    user.loginAttempts = 0;
+    user.lockoutUntil  = null;
+    await user.save({ validateBeforeSave: false });
 
     const { refresh } = setTokenCookies(res, user._id.toString(), user.email);
     await RefreshToken.create({
@@ -58,33 +127,29 @@ const login = async (req, res, next) => {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
-    logger.info(`[Auth] Login: ${email} from ${req.ip}`);
+    logger.info(`[Auth] Login: ${email}`);
     res.json({ success: true, data: safeUser(user) });
   } catch (err) { next(err); }
 };
 
-/** POST /api/auth/refresh — rotate refresh token */
+/** POST /api/auth/refresh */
 const refresh = async (req, res, next) => {
   try {
     const token = req.cookies?.hf_refresh;
-    if (!token)
-      return res.status(401).json({ success: false, message: 'No refresh token' });
+    if (!token) return res.status(401).json({ success: false, message: 'No refresh token' });
 
     let decoded;
     try { decoded = verifyRefresh(token); }
     catch { return res.status(401).json({ success: false, message: 'Refresh token invalid or expired' }); }
 
-    const hash = hashToken(token);
+    const hash   = hashToken(token);
     const stored = await RefreshToken.findOne({ tokenHash: hash });
-    if (!stored)
-      return res.status(401).json({ success: false, message: 'Token reuse detected' });
+    if (!stored) return res.status(401).json({ success: false, message: 'Token reuse detected' });
 
-    // Rotate: delete old, issue new
     await RefreshToken.deleteOne({ _id: stored._id });
 
     const user = await AppUser.findById(decoded.sub).lean();
-    if (!user)
-      return res.status(401).json({ success: false, message: 'User not found' });
+    if (!user) return res.status(401).json({ success: false, message: 'User not found' });
 
     const { refresh: newRefresh } = setTokenCookies(res, user._id.toString(), user.email);
     await RefreshToken.create({
@@ -101,9 +166,7 @@ const refresh = async (req, res, next) => {
 const logout = async (req, res, next) => {
   try {
     const token = req.cookies?.hf_refresh;
-    if (token) {
-      await RefreshToken.deleteOne({ tokenHash: hashToken(token) });
-    }
+    if (token) await RefreshToken.deleteOne({ tokenHash: hashToken(token) });
     clearTokenCookies(res);
     res.json({ success: true, message: 'Logged out' });
   } catch (err) { next(err); }
@@ -113,18 +176,19 @@ const logout = async (req, res, next) => {
 const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-    const user = await AppUser.findOne({ email });
-    // Always respond the same to prevent email enumeration
-    if (!user) return res.json({ success: true, message: 'If that email exists, an OTP was sent' });
+    const SAFE = () => res.json({ success: true, message: 'If that email exists, an OTP was sent' });
+
+    const user = await AppUser.findOne({ email }).select('+resetOtp +resetOtpExpiry');
+    if (!user) return SAFE();
 
     const otp = generateOtp();
-    user.resetOtp = otp;
-    user.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    user.resetOtp       = hashToken(otp); // store hashed
+    user.resetOtpExpiry = new Date(Date.now() + OTP_TTL_MS);
     await user.save({ validateBeforeSave: false });
 
-    await sendOtpEmail(user.email, otp, user.name);
-    logger.info(`[Auth] OTP sent to ${email}`);
-    res.json({ success: true, message: 'If that email exists, an OTP was sent' });
+    await sendOtpEmail(email, otp, user.name);
+    logger.info(`[Auth] OTP sent: ${email}`);
+    return SAFE();
   } catch (err) { next(err); }
 };
 
@@ -132,8 +196,8 @@ const forgotPassword = async (req, res, next) => {
 const verifyOtp = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
-    const user = await AppUser.findOne({ email });
-    if (!user || !user.resetOtp || user.resetOtp !== otp || new Date() > user.resetOtpExpiry)
+    const user = await AppUser.findOne({ email }).select('+resetOtp +resetOtpExpiry');
+    if (!user || !user.resetOtp || user.resetOtp !== hashToken(otp) || new Date() > user.resetOtpExpiry)
       return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
 
     res.json({ success: true, message: 'OTP verified' });
@@ -144,16 +208,15 @@ const verifyOtp = async (req, res, next) => {
 const resetPassword = async (req, res, next) => {
   try {
     const { email, otp, newPassword } = req.body;
-    const user = await AppUser.findOne({ email });
-    if (!user || !user.resetOtp || user.resetOtp !== otp || new Date() > user.resetOtpExpiry)
+    const user = await AppUser.findOne({ email }).select('+resetOtp +resetOtpExpiry +password');
+    if (!user || !user.resetOtp || user.resetOtp !== hashToken(otp) || new Date() > user.resetOtpExpiry)
       return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
 
-    user.password = newPassword;
-    user.resetOtp = null;
+    user.password       = newPassword;
+    user.resetOtp       = null;
     user.resetOtpExpiry = null;
     await user.save();
 
-    // Revoke all existing refresh tokens for this user
     await RefreshToken.deleteMany({ userId: user._id });
     clearTokenCookies(res);
 
@@ -162,4 +225,22 @@ const resetPassword = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { register, login, refresh, logout, forgotPassword, verifyOtp, resetPassword };
+/** POST /api/auth/resend-verification */
+const resendVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await AppUser.findOne({ email }).select('+verifyToken +verifyTokenExpiry +isVerified');
+    if (!user || user.isVerified)
+      return res.json({ success: true, message: 'If applicable, a new link was sent.' });
+
+    const token = randomToken();
+    user.verifyToken       = hashToken(token);
+    user.verifyTokenExpiry = new Date(Date.now() + VERIFY_TTL_MS);
+    await user.save({ validateBeforeSave: false });
+
+    await sendVerificationEmail(email, token, user.name);
+    res.json({ success: true, message: 'Verification email resent.' });
+  } catch (err) { next(err); }
+};
+
+module.exports = { register, login, refresh, logout, forgotPassword, verifyOtp, resetPassword, verifyEmail, resendVerification };

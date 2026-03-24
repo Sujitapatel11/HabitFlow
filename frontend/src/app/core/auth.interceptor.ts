@@ -21,9 +21,11 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
             isRefreshing = false;
             return next(credReq);
           }),
-          catchError(refreshErr => {
+          catchError(() => {
             isRefreshing = false;
-            return throwError(() => refreshErr);
+            // Refresh failed — session is dead, redirect to login
+            auth.clearSession();
+            return throwError(() => new HttpErrorResponse({ status: 401 }));
           })
         );
       }

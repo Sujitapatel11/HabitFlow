@@ -3,14 +3,16 @@ import { FormsModule } from '@angular/forms';
 import { HabitService } from '../../services/habit.service';
 import { GamificationService } from '../../services/gamification.service';
 import { OptimisticService } from '../../services/optimistic.service';
+import { ResistanceService } from '../../services/resistance.service';
 import { ShakeDirective } from '../../directives/shake.directive';
 import { EarnedBadgesPipe } from '../../pipes/earned-badges.pipe';
+import { ProgressionComponent } from '../../components/progression/progression';
 import { Habit } from '../../models/habit.model';
 import { GoalCategory } from '../../models/user.model';
 
 @Component({
   selector: 'app-habits',
-  imports: [FormsModule, EarnedBadgesPipe, ShakeDirective],
+  imports: [FormsModule, EarnedBadgesPipe, ShakeDirective, ProgressionComponent],
   templateUrl: './habits.html',
   styleUrl: './habits.css',
 })
@@ -20,10 +22,10 @@ export class Habits implements OnInit {
   showForm   = signal(false);
   submitting = signal(false);
   error      = signal('');
-  // tracks which card is in a pending optimistic state
   pendingId  = signal<string | null>(null);
-  // tracks which card failed (triggers shake + red glow)
   failedId   = signal<string | null>(null);
+
+  maxStreak  = computed(() => Math.max(...this.habits().map(h => h.streak), 0));
 
   skeletonCount = Array(4); // 4 skeleton cards while loading
 
@@ -34,6 +36,7 @@ export class Habits implements OnInit {
     private habitSvc: HabitService,
     public  gameSvc:  GamificationService,
     private optimistic: OptimisticService,
+    public  resistance: ResistanceService,
   ) {}
 
   ngOnInit() {
@@ -75,40 +78,52 @@ export class Habits implements OnInit {
   }
 
   toggle(habit: Habit) {
-    if (habit._id.startsWith('temp_')) return; // guard against clicking pending cards
+    if (habit._id.startsWith('temp_')) return;
 
     if (!habit.completed) {
-      // ── Optimistic complete ──────────────────────────────────────────────
+      // ── Resistance evaluation (client-side signal, invisible) ────────────
+      const clientDelay = this.resistance.recordAndEvaluate('complete', habit._id);
+
       this.pendingId.set(habit._id);
       const rollback = this.optimistic.updateItem(this.habits, habit._id, {
         completed: true,
         streak: habit.streak + 1,
       });
 
-      this.habitSvc.completeHabit(habit._id).subscribe({
-        next: (res) => {
-          // Replace with authoritative server data
-          this.habits.update(list => list.map(h => h._id === habit._id ? res.data : h));
-          this.gameSvc.addXP(res.xpGained);
-          this.launchConfetti();
-          const all = this.habits();
-          this.gameSvc.checkBadges(
-            all.filter(h => h.completed).length,
-            Math.max(...all.map(h => h.streak), 0),
-            false
-          );
-          this.pendingId.set(null);
-        },
-        error: (err) => {
-          rollback();
-          this.pendingId.set(null);
-          this.failedId.set(habit._id);
-          this.error.set(err.error?.message || 'Check-in failed');
-          setTimeout(() => this.failedId.set(null), 800);
-        },
-      });
+      // Apply client-side resistance delay before showing optimistic state
+      // Normal users: 0ms. Suspicious users: feels like natural network latency.
+      const doComplete = () => {
+        this.habitSvc.completeHabit(habit._id).subscribe({
+          next: (res) => {
+            this.habits.update(list => list.map(h => h._id === habit._id ? res.data : h));
+            this.gameSvc.addXP(res.xpGained);
+            this.launchConfetti();
+            const all = this.habits();
+            this.gameSvc.checkBadges(
+              all.filter(h => h.completed).length,
+              Math.max(...all.map(h => h.streak), 0),
+              false
+            );
+            this.pendingId.set(null);
+          },
+          error: (err) => {
+            rollback();
+            this.pendingId.set(null);
+            this.failedId.set(habit._id);
+            this.error.set(err.error?.message || 'Check-in failed');
+            setTimeout(() => this.failedId.set(null), 800);
+          },
+        });
+      };
+
+      if (clientDelay > 0) {
+        setTimeout(doComplete, clientDelay);
+      } else {
+        doComplete();
+      }
     } else {
       // ── Optimistic undo ──────────────────────────────────────────────────
+      this.resistance.recordAndEvaluate('undo', habit._id);
       const rollback = this.optimistic.updateItem(this.habits, habit._id, {
         completed: false,
         streak: Math.max(0, habit.streak - 1),
@@ -156,14 +171,5 @@ export class Habits implements OnInit {
       Studying:'#48cae4', Mindfulness:'#BF5FFF', Nutrition:'#10b981', Other:'#6B7DB3',
     };
     return m[cat] || '#6B7DB3';
-  }
-
-  xpProgress(): number {
-    const s = this.gameSvc.stats();
-    const levels = [0,100,250,500,900,1500];
-    const idx = s.level - 1;
-    const cur  = levels[idx]   || 0;
-    const next = levels[idx+1] || cur + 100;
-    return Math.min(((s.xp - cur) / (next - cur)) * 100, 100);
   }
 }

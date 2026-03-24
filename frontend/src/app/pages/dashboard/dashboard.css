@@ -1,27 +1,5 @@
 .page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
-/* ── XP bar ──────────────────────────────────────────────────────────────── */
-.xp-bar-wrap {
-  display: flex; align-items: center; gap: .75rem;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r-lg); padding: .75rem 1.1rem; margin-bottom: 1.5rem;
-}
-.xp-left { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
-.level-badge {
-  background: var(--cyan-dim); color: var(--cyan);
-  border: 1px solid rgba(0,212,255,.3);
-  font-size: .72rem; font-weight: 700; padding: .2rem .65rem;
-  border-radius: 99px; text-transform: uppercase; letter-spacing: .06em;
-}
-.xp-text { font-size: .82rem; font-weight: 600; color: var(--text-2); }
-.xp-track { flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
-.xp-fill {
-  height: 100%; background: linear-gradient(90deg, var(--cyan), var(--purple));
-  border-radius: 99px; transition: width 600ms cubic-bezier(.4,0,.2,1);
-  box-shadow: 0 0 8px rgba(0,212,255,.5);
-}
-.xp-next { font-size: .75rem; color: var(--text-3); flex-shrink: 0; }
-
 /* ── AXIOM banner ────────────────────────────────────────────────────────── */
 .ai-banner {
   background: var(--surface);

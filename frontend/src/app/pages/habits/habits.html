@@ -1,32 +1,7 @@
 <div class="page fade-up">
 
-  <!-- XP Bar -->
-  <div class="xp-bar-wrap">
-    <div class="xp-left">
-      <span class="level-badge">{{ gameSvc.stats().levelName }}</span>
-      <span class="xp-text">{{ gameSvc.stats().xp }} CE</span>
-    </div>
-    <div class="xp-track">
-      <div class="xp-fill" [style.width.%]="xpProgress()"></div>
-    </div>
-    <span class="xp-next">{{ gameSvc.stats().xpForNext }} CE</span>
-  </div>
-
-  <!-- Badge popup (global, from gamification service) -->
-  @if (gameSvc.newBadge()) {
-    <div class="badge-popup">
-      <span class="badge-pop-icon">{{ gameSvc.newBadge()!.icon }}</span>
-      <div>
-        <div class="badge-pop-title">Commendation Unlocked</div>
-        <div class="badge-pop-name">{{ gameSvc.newBadge()!.name }}</div>
-      </div>
-    </div>
-  }
-
-  <!-- XP popup -->
-  @if (gameSvc.xpPopup().show) {
-    <div class="xp-popup">+{{ gameSvc.xpPopup().amount }} CE</div>
-  }
+  <!-- Space Progression Bar -->
+  <app-progression [streak]="maxStreak()"></app-progression>
 
   <div class="page-header">
     <div>
@@ -135,9 +110,7 @@
             }
             <div class="card-actions">
               <button
-                class="btn-toggle"
-                [class.undo]="h.completed"
-                [class.pop]="pendingId() === h._id"
+                [class]="pendingId() === h._id ? 'btn-toggle pop' : 'btn-toggle ' + (h.completed ? 'undo' : '') + ' ' + resistance.resistanceClass()"
                 [disabled]="pendingId() === h._id || h._id.startsWith('temp_')"
                 (click)="toggle(h)">
                 @if (pendingId() === h._id) {

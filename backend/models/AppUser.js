@@ -42,9 +42,17 @@ const appUserSchema = new mongoose.Schema(
     // OTP fields
     resetOtp:       { type: String, default: null, select: false },
     resetOtpExpiry: { type: Date,   default: null, select: false },
+    // Email verification
+    isVerified:         { type: Boolean, default: false },
+    verifyToken:        { type: String,  default: null, select: false },
+    verifyTokenExpiry:  { type: Date,    default: null, select: false },
+    // Brute-force lockout
+    loginAttempts: { type: Number, default: 0, select: false },
+    lockoutUntil:  { type: Date,   default: null, select: false },
     // Abuse control
-    isBanned:  { type: Boolean, default: false },
-    banReason: { type: String, default: '' },
+    isBanned:   { type: Boolean, default: false },
+    banReason:  { type: String, default: '' },
+    trustTier:  { type: String, enum: ['CLEAN','WATCH','SHADOW','GHOST'], default: 'CLEAN', select: false },
   },
   { timestamps: true }
 );

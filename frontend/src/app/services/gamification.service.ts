@@ -12,42 +12,66 @@ export interface PlayerStats {
   xp: number;
   level: number;
   levelName: string;
+  levelIcon: string;
   xpForNext: number;
+  xpCurrent: number; // XP at start of current level (for progress calc)
   badges: Badge[];
 }
 
-const LEVELS = [
-  { min: 0,    name: 'Space Cadet',  icon: '🛸' },
-  { min: 100,  name: 'Pilot',        icon: '🚀' },
-  { min: 250,  name: 'Commander',    icon: '⚡' },
-  { min: 500,  name: 'Admiral',      icon: '🌌' },
-  { min: 900,  name: 'Legend',       icon: '💫' },
-  { min: 1500, name: 'Galactic God', icon: '🤖' },
+export interface LevelUpEvent {
+  newLevel: number;
+  levelName: string;
+  levelIcon: string;
+  rankColor: string;
+}
+
+export const LEVELS = [
+  { min: 0,    name: 'Space Cadet',   icon: '🛸', color: '#6B7DB3' },
+  { min: 100,  name: 'Pilot',         icon: '🚀', color: '#00D4FF' },
+  { min: 250,  name: 'Commander',     icon: '⚡', color: '#00FF88' },
+  { min: 500,  name: 'Admiral',       icon: '🌌', color: '#FFB800' },
+  { min: 900,  name: 'Legend',        icon: '💫', color: '#BF5FFF' },
+  { min: 1500, name: 'Galactic God',  icon: '🤖', color: '#FF3B5C' },
 ];
 
 const BADGE_DEFS = [
-  { id: 'first_habit', name: 'First Launch',    icon: '🛸', description: 'Complete your first habit' },
-  { id: 'streak_3',    name: 'Orbit Locked',    icon: '🔥', description: '3-day streak' },
-  { id: 'streak_7',    name: 'Warp Speed',      icon: '⚡', description: '7-day streak' },
-  { id: 'streak_30',   name: 'Iron Protocol',   icon: '🤖', description: '30-day streak' },
-  { id: 'habits_5',    name: 'System Builder',  icon: '🏗️', description: 'Complete 5 habits' },
-  { id: 'habits_20',   name: 'Cyber Master',    icon: '💎', description: 'Complete 20 habits' },
-  { id: 'social',      name: 'Neural Link',     icon: '🔗', description: 'Make your first connection' },
+  { id: 'first_habit', name: 'First Launch',   icon: '🛸', description: 'Complete your first mission' },
+  { id: 'streak_3',    name: 'Orbit Locked',   icon: '🔥', description: '3-day reactor streak' },
+  { id: 'streak_7',    name: 'Warp Speed',     icon: '⚡', description: '7-day reactor streak' },
+  { id: 'streak_30',   name: 'Iron Protocol',  icon: '🤖', description: '30-day reactor streak' },
+  { id: 'habits_5',    name: 'System Builder', icon: '🏗️', description: 'Complete 5 missions' },
+  { id: 'habits_20',   name: 'Cyber Master',   icon: '💎', description: 'Complete 20 missions' },
+  { id: 'social',      name: 'Neural Link',    icon: '🔗', description: 'Make your first connection' },
 ];
 
 @Injectable({ providedIn: 'root' })
 export class GamificationService {
-  stats = signal<PlayerStats>(this.load());
+  stats    = signal<PlayerStats>(this.load());
   newBadge = signal<Badge | null>(null);
-  xpPopup = signal<{ amount: number; show: boolean }>({ amount: 0, show: false });
+  levelUp  = signal<LevelUpEvent | null>(null);
+  xpPopup  = signal<{ amount: number; show: boolean }>({ amount: 0, show: false });
 
   addXP(amount: number) {
     const s = { ...this.stats() };
+    const prevLevel = s.level;
     s.xp += amount;
     this.updateLevel(s);
     this.stats.set(s);
     this.save(s);
     this.showXPPopup(amount);
+
+    // Fire level-up event if rank changed
+    if (s.level > prevLevel) {
+      const lvlDef = LEVELS[s.level - 1];
+      const evt: LevelUpEvent = {
+        newLevel: s.level,
+        levelName: lvlDef.name,
+        levelIcon: lvlDef.icon,
+        rankColor: lvlDef.color,
+      };
+      this.levelUp.set(evt);
+      setTimeout(() => this.levelUp.set(null), 5000);
+    }
   }
 
   checkBadges(completedCount: number, maxStreak: number, hasConnection: boolean) {
@@ -72,8 +96,22 @@ export class GamificationService {
 
     if (earned) {
       this.newBadge.set(earned);
-      setTimeout(() => this.newBadge.set(null), 4000);
+      setTimeout(() => this.newBadge.set(null), 4500);
     }
+  }
+
+  /** Progress 0–100 within current level band */
+  levelProgress(): number {
+    const s = this.stats();
+    const lvlIdx = s.level - 1;
+    const cur  = LEVELS[lvlIdx]?.min ?? 0;
+    const next = LEVELS[lvlIdx + 1]?.min ?? cur + 500;
+    return Math.min(((s.xp - cur) / (next - cur)) * 100, 100);
+  }
+
+  /** Color for current rank */
+  rankColor(): string {
+    return LEVELS[this.stats().level - 1]?.color ?? '#00D4FF';
   }
 
   private updateLevel(s: PlayerStats) {
@@ -81,30 +119,35 @@ export class GamificationService {
     for (let i = LEVELS.length - 1; i >= 0; i--) {
       if (s.xp >= LEVELS[i].min) { lvl = i; break; }
     }
-    s.level = lvl + 1;
-    s.levelName = `${LEVELS[lvl].icon} ${LEVELS[lvl].name}`;
-    const next = LEVELS[lvl + 1];
-    s.xpForNext = next ? next.min : LEVELS[LEVELS.length - 1].min;
+    s.level     = lvl + 1;
+    s.levelIcon = LEVELS[lvl].icon;
+    s.levelName = LEVELS[lvl].name;
+    s.xpCurrent = LEVELS[lvl].min;
+    const next  = LEVELS[lvl + 1];
+    s.xpForNext = next ? next.min : LEVELS[LEVELS.length - 1].min + 500;
   }
 
   private showXPPopup(amount: number) {
     this.xpPopup.set({ amount, show: true });
-    setTimeout(() => this.xpPopup.set({ amount, show: false }), 1800);
+    setTimeout(() => this.xpPopup.set({ amount, show: false }), 2000);
   }
 
   private load(): PlayerStats {
     const saved = localStorage.getItem('hf_gamification');
     if (saved) {
-      // migrate old badge names to new space theme
       const parsed = JSON.parse(saved);
       parsed.badges = BADGE_DEFS.map(def => {
         const existing = parsed.badges?.find((b: Badge) => b.id === def.id);
         return { ...def, earned: existing?.earned ?? false };
       });
+      // ensure new fields exist
+      if (!parsed.levelIcon) parsed.levelIcon = '🛸';
+      if (!parsed.xpCurrent) parsed.xpCurrent = 0;
       return parsed;
     }
     return {
-      xp: 0, level: 1, levelName: '🛸 Space Cadet', xpForNext: 100,
+      xp: 0, level: 1, levelName: 'Space Cadet', levelIcon: '🛸',
+      xpForNext: 100, xpCurrent: 0,
       badges: BADGE_DEFS.map(b => ({ ...b, earned: false })),
     };
   }

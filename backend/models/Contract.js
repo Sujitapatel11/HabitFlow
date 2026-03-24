@@ -30,8 +30,8 @@ const contractSchema = new mongoose.Schema(
       default: 'none',
     },
 
-    // Public pledge page — sparse: true already prevents duplicate nulls, remove redundant index
-    publicSlug:   { type: String, unique: true, sparse: true },
+    // Public pledge page — sparse index defined below, not inline
+    publicSlug:   { type: String },
     isPublic:     { type: Boolean, default: true },
 
     // Invited witnesses (email invites for non-users)
@@ -66,7 +66,7 @@ const contractSchema = new mongoose.Schema(
 );
 
 contractSchema.index({ userId: 1, status: 1 });
-contractSchema.index({ publicSlug: 1 });
+contractSchema.index({ publicSlug: 1 }, { unique: true, sparse: true });
 contractSchema.index({ challengePairId: 1 });
 
 module.exports = mongoose.model('Contract', contractSchema);

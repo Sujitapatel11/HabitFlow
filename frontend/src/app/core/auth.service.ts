@@ -58,6 +58,10 @@ export class AuthService {
     return this.http.post<{ success: boolean; message: string }>(`${this.api}/reset-password`, { email, otp, newPassword });
   }
 
+  resendVerification(email: string) {
+    return this.http.post<{ success: boolean; message: string }>(`${this.api}/resend-verification`, { email });
+  }
+
   uploadAvatar(userId: string, file: File) {
     const form = new FormData();
     form.append('avatar', file);
@@ -85,7 +89,7 @@ export class AuthService {
     this.currentUser.set(user);
   }
 
-  private clearSession() {
+  clearSession() {
     localStorage.removeItem('hf_user');
     this.currentUser.set(null);
     this.router.navigate(['/login']);

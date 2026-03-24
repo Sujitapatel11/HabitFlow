@@ -1,29 +1,29 @@
-<div class="chat-layout">
+﻿<div class="chat-layout" (click)="showPicker.set(null)">
 
-  <!-- Sidebar: thread list -->
+  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-head">
-      <h2>💬 Messages</h2>
+      <span class="sidebar-icon">💬</span>
+      <h2>Messages</h2>
     </div>
-
     @if (chatSvc.threads().length === 0) {
       <div class="empty-threads">
-        <p>No conversations yet.</p>
-        <a routerLink="/find-users" class="btn-find">Find People →</a>
+        <div class="empty-threads-icon">🛸</div>
+        <p>No transmissions yet</p>
+        <a routerLink="/find-users" class="btn-find">Find Pilots →</a>
       </div>
     } @else {
       @for (t of chatSvc.threads(); track t.user._id) {
         <div class="thread-item" [class.active]="activeThread()?.user?._id === t.user._id" (click)="openThread(t)">
-          <div class="t-avatar">
-            @if (getAvatar(t)) {
-              <img [src]="getAvatar(t)" alt="avatar" />
-            } @else {
-              <span>{{ getInitial(t.user.name) }}</span>
-            }
-          </div>
+          <div class="t-avatar"><span>{{ getInitial(t.user.name) }}</span></div>
           <div class="t-info">
-            <span class="t-name">{{ t.user.name }}</span>
-            <span class="t-last">{{ t.lastMessage.text | slice:0:40 }}</span>
+            <div class="t-name-row">
+              <span class="t-name">{{ t.user.name }}</span>
+              @if (t.chatStreak && t.chatStreak > 1) {
+                <span class="t-streak">🔥{{ t.chatStreak }}</span>
+              }
+            </div>
+            <span class="t-last">{{ t.lastMessage.text | slice:0:38 }}</span>
           </div>
           @if (t.unread > 0) {
             <span class="t-badge">{{ t.unread }}</span>
@@ -33,60 +33,95 @@
     }
   </aside>
 
-  <!-- Main chat area -->
+  <!-- Main -->
   <main class="chat-main">
     @if (!activeThread()) {
       <div class="no-chat">
         <div class="no-chat-icon">🤖</div>
-        <p>Select a conversation to start messaging</p>
+        <p>Select a transmission channel</p>
       </div>
     } @else {
-      <!-- Header -->
       <div class="chat-header">
-        <div class="ch-avatar">
-          @if (getAvatar(activeThread()!)) {
-            <img [src]="getAvatar(activeThread()!)" alt="avatar" />
-          } @else {
-            <span>{{ getInitial(activeThread()!.user.name) }}</span>
-          }
-        </div>
+        <div class="ch-avatar"><span>{{ getInitial(activeThread()!.user.name) }}</span></div>
         <div class="ch-info">
           <span class="ch-name">{{ activeThread()!.user.name }}</span>
           @if (chatSvc.typingFrom() === activeThread()!.user._id) {
-            <span class="typing-indicator">typing<span class="dots"><span>.</span><span>.</span><span>.</span></span></span>
+            <span class="typing-status">
+              <span class="wave-dot"></span><span class="wave-dot"></span><span class="wave-dot"></span>
+            </span>
+          } @else {
+            <span class="ch-sub">Pilot</span>
           }
         </div>
+        @if (activeThread()!.chatStreak && activeThread()!.chatStreak! > 1) {
+          <div class="header-streak">
+            <span>🔥</span>
+            <span class="streak-num">{{ activeThread()!.chatStreak }}</span>
+            <span class="streak-lbl">day streak</span>
+          </div>
+        }
       </div>
 
-      <!-- Messages -->
       <div class="messages-wrap">
-        @for (msg of chatSvc.messages(); track msg._id ?? msg.createdAt) {
-          <div class="msg-row" [class.mine]="isMine(msg)">
-            <div class="bubble" [class.mine]="isMine(msg)">
-              <p>{{ msg.text }}</p>
-              <span class="ts">{{ msg.createdAt | date:'shortTime' }}</span>
+        @for (msg of grouped(); track msg._id ?? msg.createdAt) {
+          <div class="msg-row" [class.mine]="isMine(msg)" [class.msg-new]="msg.isNew">
+            @if (!isMine(msg) && msg.isGroupStart) {
+              <div class="msg-avatar"><span>{{ getInitial(activeThread()!.user.name) }}</span></div>
+            } @else if (!isMine(msg)) {
+              <div class="msg-avatar-spacer"></div>
+            }
+            <div class="bubble-wrap" [class.mine]="isMine(msg)">
+              <div class="bubble"
+                [class.mine]="isMine(msg)"
+                [class.pending]="msg.pending"
+                [class.failed]="msg.failed"
+                [class.group-start]="msg.isGroupStart"
+                [class.group-end]="msg.isGroupEnd"
+                (click)="$event.stopPropagation(); togglePicker(msg._id)">
+                <p>{{ msg.text }}</p>
+                <div class="bubble-meta">
+                  @if (msg.failed) { <span class="fail-icon">⚠</span> }
+                  @if (msg.pending) { <span class="pending-dot"></span> }
+                  <span class="ts">{{ msg.createdAt | date:'shortTime' }}</span>
+                </div>
+              </div>
+              @if (uniqueReactions(msg).length > 0) {
+                <div class="reactions-row" [class.mine]="isMine(msg)" [class.burst]="isBursting(msg)">
+                  @for (r of uniqueReactions(msg); track r.emoji) {
+                    <button class="reaction-chip" [class.mine-reaction]="myReaction(msg) === r.emoji"
+                      (click)="$event.stopPropagation(); react(msg._id, r.emoji)">
+                      {{ r.emoji }}@if (r.count > 1) {<span class="r-count">{{ r.count }}</span>}
+                    </button>
+                  }
+                </div>
+              }
+              @if (showPicker() === msg._id) {
+                <div class="reaction-picker" [class.mine]="isMine(msg)" (click)="$event.stopPropagation()">
+                  @for (e of EMOJIS; track e) {
+                    <button class="picker-emoji" [class.selected]="myReaction(msg) === e" (click)="react(msg._id, e)">{{ e }}</button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (chatSvc.typingFrom() === activeThread()!.user._id) {
+          <div class="msg-row">
+            <div class="msg-avatar"><span>{{ getInitial(activeThread()!.user.name) }}</span></div>
+            <div class="typing-bubble">
+              <span class="wave-dot"></span><span class="wave-dot"></span><span class="wave-dot"></span>
             </div>
           </div>
         }
         <div #msgEnd></div>
       </div>
 
-      <!-- Input -->
       <div class="input-bar">
-        <textarea
-          class="msg-input"
-          placeholder="Type a message..."
-          rows="1"
-          [ngModel]="newText()"
-          (ngModelChange)="newText.set($event)"
-          (keydown)="onKeydown($event)"
-          (input)="onInput()"
-        ></textarea>
-        <button class="btn-send" (click)="send()" [disabled]="!newText().trim()">
-          🚀
-        </button>
+        <textarea #inputRef class="msg-input" placeholder="Transmit message..." rows="1"
+          [ngModel]="newText()" (ngModelChange)="newText.set($event)"
+          (keydown)="onKeydown($event)" (input)="onInput()"></textarea>
+        <button class="btn-send" (click)="send()" [disabled]="!newText().trim()">🚀</button>
       </div>
     }
   </main>
-
 </div>

@@ -207,3 +207,45 @@ html, body {
   .btn-primary { padding: .5rem 1rem; font-size: .82rem; }
   .page { padding: 1.25rem 1rem; }
 }
+
+/* ── Resistance animations (anti-cheat UX — invisible to normal users) ───── */
+
+/* WATCH tier: button feels slightly heavy */
+.resist-watch {
+  transition: transform 250ms cubic-bezier(.4,0,.6,1),
+              box-shadow 250ms ease,
+              opacity 250ms ease !important;
+}
+.resist-watch:active {
+  transform: scale(.97) !important;
+}
+
+/* SHADOW tier: button pushes back before firing */
+@keyframes resistPush {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(.94) translateY(2px); }
+  60%  { transform: scale(.97) translateY(1px); }
+  100% { transform: scale(1); }
+}
+.resist-shadow {
+  animation: resistPush 380ms cubic-bezier(.4,0,.2,1) !important;
+  transition: opacity 380ms ease !important;
+}
+
+/* GHOST tier: button appears to "think" — subtle opacity pulse */
+@keyframes resistThink {
+  0%,100% { opacity: 1; }
+  40%     { opacity: .55; }
+  70%     { opacity: .8; }
+}
+.resist-ghost {
+  animation: resistThink 750ms ease-in-out !important;
+  pointer-events: none;
+}
+
+/* Subtle magnetic resistance on hover for SHADOW/GHOST (feels like friction) */
+.resist-shadow:hover,
+.resist-ghost:hover {
+  transform: scale(.99) !important;
+  transition: transform 300ms cubic-bezier(.4,0,.6,1) !important;
+}

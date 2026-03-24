@@ -2,6 +2,7 @@ const Habit      = require('../models/Habit');
 const AppUser    = require('../models/AppUser');
 const Post       = require('../models/Post');
 const cache      = require('../services/cacheService');
+const trust      = require('../services/trustEngine');
 const { notifQueue } = require('../services/queues');
 const logger     = require('../services/logger');
 
@@ -58,41 +59,58 @@ const completeHabit = async (req, res, next) => {
       if (diff < 0)  return res.status(400).json({ success: false, message: 'Backdated completion not allowed' });
     }
 
+    // ── Trust evaluation (silent — never exposed to user) ─────────────────
+    const trustProfile = await trust.evaluate(userId, habit._id, habit.createdAt);
+
+    // Shadow delay — suspicious users experience natural-feeling slowness
+    if (trustProfile.delayMs > 0) {
+      await new Promise(r => setTimeout(r, trustProfile.delayMs));
+    }
+
     let newStreak = 1;
     if (habit.lastCompletedDate) {
       newStreak = daysDiff(habit.lastCompletedDate, now) === 1 ? habit.streak + 1 : 1;
     }
+
+    // Ghost tier: streak capped at 1 (they can't build a streak by cheating)
+    if (trustProfile.capStreak) newStreak = 1;
 
     habit.completed = true;
     habit.streak    = newStreak;
     habit.lastCompletedDate = now;
     await habit.save();
 
-    const xpGained = XP_PER_COMPLETION + XP_STREAK_BONUS(newStreak);
+    // ── Silent XP reduction — user sees full number, DB gets reduced amount ─
+    const rawXp    = XP_PER_COMPLETION + XP_STREAK_BONUS(newStreak);
+    const xpGained = Math.round(rawXp * trustProfile.xpMult);
+    // We report rawXp to the client so they see "normal" rewards
+    // but only store the reduced amount — they can never verify the DB value
+    const reportedXp = rawXp;
 
-    // Atomic XP + streak update
     const allHabits = await Habit.find({ userId }).select('streak').lean();
     const maxStreak = Math.max(...allHabits.map(h => h.streak), 0);
     await AppUser.findByIdAndUpdate(userId, { $inc: { xp: xpGained }, streak: maxStreak });
 
-    // Invalidate cached stats
     await cache.invalidateUser(userId);
 
-    // Community post (fire-and-forget — don't block response)
-    AppUser.findById(userId).lean().then(user => {
-      const streakMsg = newStreak > 1 ? ` ${newStreak}-day streak! 🔥` : '';
-      Post.create({
-        authorId: userId, authorName: user?.name || 'Someone',
-        habitName: habit.name, category: habit.category, type: 'completion',
-        message: `Just completed "${habit.name}"!${streakMsg} 💪`,
-      }).catch(e => logger.warn(`[Habit] post create failed: ${e.message}`));
-    });
+    // Community post suppressed for shadow/ghost tier (silently)
+    if (!trustProfile.suppressPost) {
+      AppUser.findById(userId).lean().then(user => {
+        const streakMsg = newStreak > 1 ? ` ${newStreak}-day streak! 🔥` : '';
+        Post.create({
+          authorId: userId, authorName: user?.name || 'Someone',
+          habitName: habit.name, category: habit.category, type: 'completion',
+          message: `Just completed "${habit.name}"!${streakMsg} 💪`,
+        }).catch(e => logger.warn(`[Habit] post create failed: ${e.message}`));
+      });
+    }
 
-    // Queue streak-risk notification if streak is at risk tomorrow
     await notifQueue.add('streak-reminder', { userId, habitId: habit._id, streak: newStreak });
 
-    logger.info(`[Habit] ${userId} completed "${habit.name}" streak=${newStreak} xp+${xpGained}`);
-    res.json({ success: true, data: habit, xpGained, newStreak });
+    logger.info(`[Habit] ${userId} completed "${habit.name}" streak=${newStreak} xp+${xpGained} (reported=${reportedXp}) tier=${trustProfile.name}`);
+
+    // Return reportedXp (full amount) — client never knows about reduction
+    res.json({ success: true, data: habit, xpGained: reportedXp, newStreak });
   } catch (err) { next(err); }
 };
 
@@ -111,6 +129,9 @@ const undoHabit = async (req, res, next) => {
     habit.streak    = Math.max(0, habit.streak - 1);
     habit.lastCompletedDate = null;
     await habit.save();
+
+    // Record undo signal for trust engine (undo→redo cycling detection)
+    await trust.recordUndo(userId, habit._id);
 
     await AppUser.findByIdAndUpdate(userId, { $inc: { xp: -xpToRemove } });
     await cache.invalidateUser(userId);

@@ -5,12 +5,13 @@ import { AiMessageService } from '../../services/ai-message.service';
 import { NotificationService } from '../../services/notification.service';
 import { PeopleService } from '../../services/people.service';
 import { GamificationService } from '../../services/gamification.service';
+import { ProgressionComponent } from '../../components/progression/progression';
 import { Habit } from '../../models/habit.model';
 import { AppUser, Connection } from '../../models/app-user.model';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink],
+  imports: [RouterLink, ProgressionComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -48,7 +49,17 @@ export class Dashboard implements OnInit {
           setTimeout(() => this.notifSvc.addNotification(this.aiSvc.getReminderMessage(h.name), 'reminder'), (i + 1) * 3000);
         });
       },
-      error: () => { this.error.set('Failed to load. Is the backend running on port 3001?'); this.loading.set(false); },
+      error: (err) => {
+        this.loading.set(false);
+        // 401/403 = session expired — interceptor already redirected to login
+        if (err?.status === 401 || err?.status === 403) return;
+        // 0 = no network / backend down
+        if (err?.status === 0) {
+          this.error.set('Cannot reach server. Make sure the backend is running on port 3001.');
+        } else {
+          this.error.set(`Error ${err?.status ?? ''}: ${err?.error?.message ?? 'Failed to load habits.'}`);
+        }
+      },
     });
 
     const me = this.peopleSvc.currentProfile();
@@ -70,14 +81,5 @@ export class Dashboard implements OnInit {
       Studying: '#48cae4', Mindfulness: '#ec4899', Nutrition: '#10b981', Other: '#94a3b8',
     };
     return m[cat] || '#94a3b8';
-  }
-
-  xpProgress(): number {
-    const s = this.gameSvc.stats();
-    const levels = [0, 100, 250, 500, 900, 1500];
-    const lvlIdx = s.level - 1;
-    const current = levels[lvlIdx] || 0;
-    const next = levels[lvlIdx + 1] || current + 100;
-    return Math.min(((s.xp - current) / (next - current)) * 100, 100);
   }
 }

@@ -1,135 +1,231 @@
 <div class="auth-page">
-  <div class="auth-card">
+  <!-- Starfield background particles -->
+  <div class="stars" aria-hidden="true">
+    @for (s of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; track s) {
+      <div class="star" [style.--d]="s + 's'" [style.--x]="(s * 6.5) + '%'" [style.--y]="(s * 5.8) + '%'"></div>
+    }
+  </div>
+
+  <div class="auth-card" [class.shake]="shake()">
+
+    <!-- Brand -->
     <div class="brand">
-      <span class="brand-icon">✦</span>
+      <span class="brand-glow">✦</span>
       <span class="brand-name">HabitFlow</span>
     </div>
 
+    <!-- Tabs (login / register only) -->
     @if (mode() === 'login' || mode() === 'register') {
       <div class="tabs">
         <button class="tab" [class.active]="mode() === 'login'" (click)="switchMode('login')">Log In</button>
-        <button class="tab" [class.active]="mode() === 'register'" (click)="switchMode('register')">Create Account</button>
+        <button class="tab" [class.active]="mode() === 'register'" (click)="switchMode('register')">Sign Up</button>
       </div>
     }
 
-    @if (error()) { <div class="error-banner">{{ error() }}</div> }
-    @if (success()) { <div class="success-banner">{{ success() }}</div> }
-
-    <!-- LOGIN -->
-    @if (mode() === 'login') {
-      <form (ngSubmit)="login()">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" [(ngModel)]="email" name="email" placeholder="you@example.com" autocomplete="email" />
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" autocomplete="current-password" />
-        </div>
-        <div class="forgot-link">
-          <button type="button" class="link-btn" (click)="switchMode('forgot')">Forgot password?</button>
-        </div>
-        <button type="submit" class="btn-submit" [disabled]="loading()">
-          {{ loading() ? 'Logging in...' : 'Log In' }}
-        </button>
-      </form>
-      <p class="switch-hint">Don't have an account? <button class="link-btn" (click)="switchMode('register')">Create one</button></p>
+    <!-- Alerts -->
+    @if (error()) {
+      <div class="alert alert-error">⚠ {{ error() }}</div>
+    }
+    @if (success()) {
+      <div class="alert alert-success">✓ {{ success() }}</div>
     }
 
-    <!-- REGISTER -->
+    <!-- ── LOGIN ─────────────────────────────────────────────────────── -->
+    @if (mode() === 'login') {
+      <form class="auth-form" (ngSubmit)="login()">
+        <div class="field-wrap">
+          <input class="field" type="email" [(ngModel)]="email" name="email"
+            placeholder=" " autocomplete="email"
+            (blur)="validateEmail(email)" />
+          <label class="field-label">Email</label>
+          @if (emailErr()) { <span class="field-err">{{ emailErr() }}</span> }
+        </div>
+
+        <div class="field-wrap">
+          <input class="field" [type]="showPassword ? 'text' : 'password'"
+            [(ngModel)]="password" name="password" placeholder=" " autocomplete="current-password" />
+          <label class="field-label">Password</label>
+          <button type="button" class="eye-btn" (click)="showPassword = !showPassword" tabindex="-1">
+            {{ showPassword ? '🙈' : '👁' }}
+          </button>
+        </div>
+
+        <div class="forgot-row">
+          <button type="button" class="link-btn" (click)="switchMode('forgot')">Forgot password?</button>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          @if (loading()) { <span class="spinner"></span> } @else { Log In → }
+        </button>
+      </form>
+      <p class="switch-hint">No account? <button class="link-btn" (click)="switchMode('register')">Sign up free</button></p>
+    }
+
+    <!-- ── REGISTER ───────────────────────────────────────────────────── -->
     @if (mode() === 'register') {
-      <form (ngSubmit)="register()">
-        <div class="form-group">
-          <label>Your Name *</label>
-          <input type="text" [(ngModel)]="name" name="name" placeholder="e.g. Rahul Sharma" />
+      <form class="auth-form" (ngSubmit)="register()">
+        <div class="field-wrap">
+          <input class="field" type="text" [(ngModel)]="name" name="name"
+            placeholder=" " (blur)="validateName(name)" />
+          <label class="field-label">Your Name</label>
+          @if (nameErr()) { <span class="field-err">{{ nameErr() }}</span> }
         </div>
-        <div class="form-group">
-          <label>Email *</label>
-          <input type="email" [(ngModel)]="regEmail" name="regEmail" placeholder="you@example.com" autocomplete="email" />
+
+        <div class="field-wrap">
+          <input class="field" type="email" [(ngModel)]="regEmail" name="regEmail"
+            placeholder=" " autocomplete="email" (blur)="validateEmail(regEmail)" />
+          <label class="field-label">Email</label>
+          @if (emailErr()) { <span class="field-err">{{ emailErr() }}</span> }
         </div>
-        <div class="form-group">
-          <label>Password * <span class="hint">(min 6 characters)</span></label>
-          <input type="password" [(ngModel)]="regPassword" name="regPassword" placeholder="••••••••" autocomplete="new-password" />
+
+        <div class="field-wrap">
+          <input class="field" [type]="showRegPassword ? 'text' : 'password'"
+            [(ngModel)]="regPassword" name="regPassword" placeholder=" "
+            autocomplete="new-password" (input)="validatePassword(regPassword)" />
+          <label class="field-label">Password</label>
+          <button type="button" class="eye-btn" (click)="showRegPassword = !showRegPassword" tabindex="-1">
+            {{ showRegPassword ? '🙈' : '👁' }}
+          </button>
+          @if (passwordErr()) { <span class="field-err">{{ passwordErr() }}</span> }
         </div>
-        <div class="form-group">
-          <label>Primary Goal</label>
+
+        <!-- Password strength bar -->
+        @if (regPassword) {
+          <div class="strength-wrap">
+            <div class="strength-bar">
+              @for (i of [1,2,3,4,5]; track i) {
+                <div class="strength-seg" [class.filled]="regStrength.score >= i"
+                  [style.background]="regStrength.score >= i ? regStrength.color : ''"></div>
+              }
+            </div>
+            <span class="strength-label" [style.color]="regStrength.color">{{ regStrength.label }}</span>
+          </div>
+        }
+
+        <div class="field-wrap">
+          <label class="static-label">Primary Goal</label>
           <div class="goals-grid">
             @for (g of goals; track g) {
               <button type="button" class="goal-chip" [class.selected]="goalCategory === g" (click)="goalCategory = g">{{ g }}</button>
             }
           </div>
         </div>
-        <div class="form-group">
-          <label>Bio <span class="hint">(optional)</span></label>
-          <input type="text" [(ngModel)]="bio" name="bio" placeholder="A short intro about yourself..." />
-        </div>
+
         <button type="submit" class="btn-submit" [disabled]="loading()">
-          {{ loading() ? 'Creating account...' : 'Create Account →' }}
+          @if (loading()) { <span class="spinner"></span> } @else { Create Account 🚀 }
         </button>
       </form>
-      <p class="switch-hint">Already have an account? <button class="link-btn" (click)="switchMode('login')">Log in</button></p>
+      <p class="switch-hint">Have an account? <button class="link-btn" (click)="switchMode('login')">Log in</button></p>
     }
 
-    <!-- FORGOT — Step 1: Enter email -->
-    @if (mode() === 'forgot') {
-      <div class="reset-header">
-        <div class="reset-icon">🔐</div>
-        <h2>Forgot Password?</h2>
-        <p class="auth-sub">Enter your email and we'll send a 6-digit OTP.</p>
+    <!-- ── VERIFY SENT ────────────────────────────────────────────────── -->
+    @if (mode() === 'verify-sent') {
+      <div class="center-state">
+        <div class="state-icon anim-bounce">📧</div>
+        <h2 class="state-title">Check your inbox</h2>
+        <p class="state-sub">We sent a verification link to <strong>{{ regEmail }}</strong>. It expires in 15 minutes.</p>
+        <button class="btn-submit" style="margin-top:1.5rem" (click)="resendVerification()">Resend email</button>
+        <p class="switch-hint"><button class="link-btn" (click)="switchMode('login')">← Back to login</button></p>
       </div>
-      <form (ngSubmit)="sendOtp()">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" [(ngModel)]="forgotEmail" name="forgotEmail" placeholder="you@example.com" />
+    }
+
+    <!-- ── EMAIL VERIFIED ─────────────────────────────────────────────── -->
+    @if (mode() === 'verified') {
+      <div class="center-state">
+        <div class="state-icon anim-pop">✅</div>
+        <h2 class="state-title">Email Verified!</h2>
+        <p class="state-sub">Your account is active. Log in to start your mission.</p>
+        <div class="badge-unlock">🏅 First Step badge unlocked</div>
+        <button class="btn-submit" style="margin-top:1.5rem" (click)="switchMode('login')">Log In →</button>
+      </div>
+    }
+
+    <!-- ── FORGOT ─────────────────────────────────────────────────────── -->
+    @if (mode() === 'forgot') {
+      <div class="mode-header">
+        <div class="mode-icon">🔐</div>
+        <h2>Forgot Password?</h2>
+        <p class="auth-sub">Enter your email and we'll send a 6-digit code.</p>
+      </div>
+      <form class="auth-form" (ngSubmit)="sendOtp()">
+        <div class="field-wrap">
+          <input class="field" type="email" [(ngModel)]="forgotEmail" name="forgotEmail" placeholder=" " />
+          <label class="field-label">Email</label>
         </div>
         <button type="submit" class="btn-submit" [disabled]="loading()">
-          {{ loading() ? 'Sending OTP...' : 'Send OTP →' }}
+          @if (loading()) { <span class="spinner"></span> } @else { Send Code → }
         </button>
       </form>
       <p class="switch-hint"><button class="link-btn" (click)="switchMode('login')">← Back to login</button></p>
     }
 
-    <!-- VERIFY OTP — Step 2 -->
+    <!-- ── VERIFY OTP ─────────────────────────────────────────────────── -->
     @if (mode() === 'verify-otp') {
-      <div class="reset-header">
-        <div class="reset-icon">📧</div>
-        <h2>Enter OTP</h2>
-        <p class="auth-sub">Check <strong>{{ forgotEmail }}</strong> for your 6-digit code.</p>
+      <div class="mode-header">
+        <div class="mode-icon">📲</div>
+        <h2>Enter Code</h2>
+        <p class="auth-sub">Sent to <strong>{{ forgotEmail }}</strong></p>
       </div>
-      <form (ngSubmit)="verifyOtp()">
-        <div class="form-group">
-          <label>6-Digit OTP</label>
-          <input type="text" [(ngModel)]="otp" name="otp" placeholder="e.g. 482910" maxlength="6" class="otp-input" />
+      <form class="auth-form" (ngSubmit)="verifyOtp()">
+        <div class="otp-row">
+          @for (d of otpDigits; track $index) {
+            <input
+              [id]="'otp-' + $index"
+              class="otp-box"
+              type="text" inputmode="numeric" maxlength="1"
+              [value]="otpDigits[$index]"
+              (input)="onOtpInput($index, $event)"
+              (keydown)="onOtpKeydown($index, $event)" />
+          }
         </div>
-        <button type="submit" class="btn-submit" [disabled]="loading()">
-          {{ loading() ? 'Verifying...' : 'Verify OTP →' }}
+        <button type="submit" class="btn-submit" [disabled]="loading() || otpValue.length < 6">
+          @if (loading()) { <span class="spinner"></span> } @else { Verify → }
         </button>
       </form>
       <p class="switch-hint">
-        Didn't get it? <button class="link-btn" (click)="sendOtp()">Resend OTP</button>
+        <button class="link-btn" (click)="sendOtp()">Resend code</button>
         &nbsp;·&nbsp;
         <button class="link-btn" (click)="switchMode('forgot')">Change email</button>
       </p>
     }
 
-    <!-- RESET PASSWORD — Step 3 -->
+    <!-- ── RESET PASSWORD ─────────────────────────────────────────────── -->
     @if (mode() === 'reset') {
-      <div class="reset-header">
-        <div class="reset-icon">🔑</div>
+      <div class="mode-header">
+        <div class="mode-icon">🔑</div>
         <h2>New Password</h2>
-        <p class="auth-sub">Choose a strong password for your account.</p>
+        <p class="auth-sub">Choose a strong password.</p>
       </div>
-      <form (ngSubmit)="resetPassword()">
-        <div class="form-group">
-          <label>New Password</label>
-          <input type="password" [(ngModel)]="newPassword" name="newPassword" placeholder="••••••••" autocomplete="new-password" />
+      <form class="auth-form" (ngSubmit)="resetPassword()">
+        <div class="field-wrap">
+          <input class="field" [type]="showNewPassword ? 'text' : 'password'"
+            [(ngModel)]="newPassword" name="newPassword" placeholder=" "
+            autocomplete="new-password" (input)="validatePassword(newPassword)" />
+          <label class="field-label">New Password</label>
+          <button type="button" class="eye-btn" (click)="showNewPassword = !showNewPassword" tabindex="-1">
+            {{ showNewPassword ? '🙈' : '👁' }}
+          </button>
         </div>
-        <div class="form-group">
-          <label>Confirm Password</label>
-          <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="••••••••" />
+        @if (newPassword) {
+          <div class="strength-wrap">
+            <div class="strength-bar">
+              @for (i of [1,2,3,4,5]; track i) {
+                <div class="strength-seg" [class.filled]="newStrength.score >= i"
+                  [style.background]="newStrength.score >= i ? newStrength.color : ''"></div>
+              }
+            </div>
+            <span class="strength-label" [style.color]="newStrength.color">{{ newStrength.label }}</span>
+          </div>
+        }
+        <div class="field-wrap">
+          <input class="field" type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder=" " />
+          <label class="field-label">Confirm Password</label>
+          @if (confirmPassword && confirmPassword !== newPassword) {
+            <span class="field-err">Passwords don't match</span>
+          }
         </div>
         <button type="submit" class="btn-submit" [disabled]="loading()">
-          {{ loading() ? 'Resetting...' : 'Reset Password ✓' }}
+          @if (loading()) { <span class="spinner"></span> } @else { Reset Password ✓ }
         </button>
       </form>
     }

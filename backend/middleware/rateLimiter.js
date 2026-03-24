@@ -1,4 +1,4 @@
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 
 const make = (windowMs, max, message) =>
   rateLimit({
@@ -7,20 +7,18 @@ const make = (windowMs, max, message) =>
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message },
-    validate: { xForwardedForHeader: false, trustProxy: false }, // suppress IPv6 warnings
-    // Key by userId if available, else IP (handles IPv6 safely)
+    // Key by userId if available, else IP via ipKeyGenerator (handles IPv6 safely)
     keyGenerator: (req) => {
       const userId = req.user?.sub;
       if (userId) return userId;
-      const ip = req.ip || req.socket?.remoteAddress || 'unknown';
-      return ip.replace(/^::ffff:/, '');
+      return ipKeyGenerator(req);
     },
   });
 
 // Auth endpoints — strict
 const authLimiter = make(15 * 60 * 1000, 10, 'Too many auth attempts. Try again in 15 minutes.');
 
-// Habit completion — max 50 per hour per user (generous but blocks bots)
+// Habit completion — max 50 per hour per user
 const habitActionLimiter = make(60 * 60 * 1000, 50, 'Too many habit actions. Slow down.');
 
 // Posting / messaging — 30 per 10 min

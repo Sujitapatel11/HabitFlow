@@ -87,4 +87,30 @@ const getThreads = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { getConversation, getThreads };
+/** PATCH /api/messages/:id/react — toggle emoji reaction */
+const reactToMessage = async (req, res, next) => {
+  try {
+    const userId = req.user.sub;
+    const { emoji } = req.body;
+    if (!emoji) return res.status(400).json({ success: false, message: 'emoji required' });
+
+    const msg = await Message.findById(req.params.id);
+    if (!msg) return res.status(404).json({ success: false, message: 'Message not found' });
+
+    if (msg.senderId.toString() !== userId && msg.receiverId.toString() !== userId)
+      return res.status(403).json({ success: false, message: 'Not a participant' });
+
+    const existing = msg.reactions.findIndex(r => r.userId.toString() === userId && r.emoji === emoji);
+    if (existing > -1) {
+      msg.reactions.splice(existing, 1);
+    } else {
+      const userIdx = msg.reactions.findIndex(r => r.userId.toString() === userId);
+      if (userIdx > -1) msg.reactions.splice(userIdx, 1);
+      msg.reactions.push({ emoji, userId });
+    }
+    await msg.save();
+    res.json({ success: true, data: msg });
+  } catch (err) { next(err); }
+};
+
+module.exports = { getConversation, getThreads, reactToMessage };

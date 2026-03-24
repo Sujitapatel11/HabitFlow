@@ -7,17 +7,8 @@
     <a routerLink="/habits" class="btn-primary">+ Add Habit</a>
   </div>
 
-  <!-- XP / Level Bar -->
-  <div class="xp-bar-wrap">
-    <div class="xp-left">
-      <span class="level-badge">{{ gameSvc.stats().levelName }}</span>
-      <span class="xp-text">{{ gameSvc.stats().xp }} XP</span>
-    </div>
-    <div class="xp-track">
-      <div class="xp-fill" [style.width.%]="xpProgress()"></div>
-    </div>
-    <span class="xp-next">Next: {{ gameSvc.stats().xpForNext }} XP</span>
-  </div>
+  <!-- Space Progression Bar -->
+  <app-progression [streak]="topStreak()"></app-progression>
 
   @if (loading()) {
     <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
