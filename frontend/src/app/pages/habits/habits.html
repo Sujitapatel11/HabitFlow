@@ -1,23 +1,23 @@
-<div class="page">
+<div class="page fade-up">
 
-  <!-- XP / Level Bar -->
+  <!-- XP Bar -->
   <div class="xp-bar-wrap">
     <div class="xp-left">
       <span class="level-badge">{{ gameSvc.stats().levelName }}</span>
-      <span class="xp-text">{{ gameSvc.stats().xp }} XP</span>
+      <span class="xp-text">{{ gameSvc.stats().xp }} CE</span>
     </div>
     <div class="xp-track">
       <div class="xp-fill" [style.width.%]="xpProgress()"></div>
     </div>
-    <span class="xp-next">{{ gameSvc.stats().xpForNext }} XP</span>
+    <span class="xp-next">{{ gameSvc.stats().xpForNext }} CE</span>
   </div>
 
-  <!-- Badge notification popup -->
+  <!-- Badge popup (global, from gamification service) -->
   @if (gameSvc.newBadge()) {
     <div class="badge-popup">
       <span class="badge-pop-icon">{{ gameSvc.newBadge()!.icon }}</span>
       <div>
-        <div class="badge-pop-title">Badge Unlocked!</div>
+        <div class="badge-pop-title">Commendation Unlocked</div>
         <div class="badge-pop-name">{{ gameSvc.newBadge()!.name }}</div>
       </div>
     </div>
@@ -25,15 +25,20 @@
 
   <!-- XP popup -->
   @if (gameSvc.xpPopup().show) {
-    <div class="xp-popup">+{{ gameSvc.xpPopup().amount }} XP</div>
+    <div class="xp-popup">+{{ gameSvc.xpPopup().amount }} CE</div>
   }
 
   <div class="page-header">
-    <div><h1>My Habits</h1><p class="sub">Build consistency, one day at a time.</p></div>
-    <button class="btn-primary" (click)="showForm.update(v => !v)">{{ showForm() ? '✕ Cancel' : '+ Add Habit' }}</button>
+    <div>
+      <h1>Active Missions</h1>
+      <p class="sub">Log your flight. Build your streak. Protect your core.</p>
+    </div>
+    <button class="btn-primary" (click)="showForm.update(v => !v)">
+      {{ showForm() ? '✕ Cancel' : '+ New Mission' }}
+    </button>
   </div>
 
-  <!-- Earned badges row -->
+  <!-- Earned badges -->
   @if (gameSvc.stats().badges | earnedBadges; as earned) {
     @if (earned.length > 0) {
       <div class="badges-row">
@@ -44,15 +49,21 @@
     }
   }
 
-  @if (error()) { <div class="error-banner">{{ error() }}</div> }
+  <!-- Error banner with shake -->
+  @if (error()) {
+    <div class="error-banner" appShake [shakeOn]="error()" (click)="error.set('')">
+      ⚠ {{ error() }} — tap to dismiss
+    </div>
+  }
 
+  <!-- Create form -->
   @if (showForm()) {
-    <div class="form-card">
-      <h3>New Habit</h3>
+    <div class="form-card fade-up">
+      <h3>New Mission</h3>
       <form (ngSubmit)="submit()">
         <div class="form-row">
           <div class="form-group">
-            <label>Name *</label>
+            <label>Mission Name *</label>
             <input type="text" [(ngModel)]="form.name" name="name" placeholder="e.g. Morning run" />
           </div>
           <div class="form-group">
@@ -66,38 +77,78 @@
           <label>Description</label>
           <input type="text" [(ngModel)]="form.description" name="description" placeholder="Optional note..." />
         </div>
-        <button type="submit" class="btn-submit" [disabled]="submitting()">{{ submitting() ? 'Saving...' : 'Create Habit' }}</button>
+        <button type="submit" class="btn-submit" [disabled]="submitting()">
+          {{ submitting() ? 'Launching...' : '🚀 Launch Mission' }}
+        </button>
       </form>
     </div>
   }
 
+  <!-- Skeleton loaders -->
   @if (loading()) {
-    <div class="loading"><div class="spinner"></div></div>
+    <div class="habits-grid">
+      @for (s of skeletonCount; track $index) {
+        <div class="habit-card skeleton-card">
+          <div class="skeleton sk-tag"></div>
+          <div class="skeleton sk-title"></div>
+          <div class="skeleton sk-desc"></div>
+          <div class="skeleton sk-btn"></div>
+        </div>
+      }
+    </div>
   } @else if (habits().length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">🌱</div>
-      <h3>No habits yet</h3>
-      <p>Click "+ Add Habit" to get started.</p>
+    <div class="empty-state fade-up">
+      <div class="empty-icon">🛸</div>
+      <h3>No missions yet</h3>
+      <p>Launch your first mission to begin your flight log.</p>
     </div>
   } @else {
     <div class="habits-grid">
       @for (h of habits(); track h._id) {
-        <div class="habit-card" [class.completed]="h.completed" [class.completing]="completingId() === h._id">
+        <div
+          class="habit-card fade-up"
+          [class.completed]="h.completed"
+          [class.optimistic]="h._id.startsWith('temp_') || pendingId() === h._id"
+          [class.optimistic-failed]="failedId() === h._id"
+          appShake [shakeOn]="failedId() === h._id"
+        >
           <div class="card-top">
-            <span class="cat-tag" [style.background]="getCategoryColor(h.category)+'20'" [style.color]="getCategoryColor(h.category)">{{ h.category }}</span>
-            <span class="streak">🔥 {{ h.streak }} days</span>
+            <span class="cat-tag"
+              [style.background]="getCategoryColor(h.category) + '22'"
+              [style.color]="getCategoryColor(h.category)"
+              [style.border-color]="getCategoryColor(h.category) + '55'">
+              {{ h.category }}
+            </span>
+            <span class="streak">
+              @if (h.streak > 0) { 🔥 {{ h.streak }}d }
+            </span>
           </div>
+
           <h3 [class.strike]="h.completed">{{ h.name }}</h3>
           @if (h.description) { <p class="desc">{{ h.description }}</p> }
+
           <div class="card-footer">
-            <button class="btn-toggle" [class.undo]="h.completed" (click)="toggle(h)">
-              {{ h.completed ? '↩ Undo' : '✓ Complete' }}
-            </button>
-            <button class="btn-del" (click)="delete(h._id)">🗑</button>
+            @if (h.completed) {
+              <span class="status-done">✓ Logged</span>
+            } @else {
+              <span class="status-pending">Awaiting log</span>
+            }
+            <div class="card-actions">
+              <button
+                class="btn-toggle"
+                [class.undo]="h.completed"
+                [class.pop]="pendingId() === h._id"
+                [disabled]="pendingId() === h._id || h._id.startsWith('temp_')"
+                (click)="toggle(h)">
+                @if (pendingId() === h._id) {
+                  <span class="btn-spinner"></span>
+                } @else {
+                  {{ h.completed ? 'Undo' : '✓ Log Flight' }}
+                }
+              </button>
+              <button class="btn-del" (click)="delete(h._id)" title="Delete mission">✕</button>
+            </div>
           </div>
-          @if (h.completed) {
-            <div class="done-overlay">✅</div>
-          }
         </div>
       }
     </div>

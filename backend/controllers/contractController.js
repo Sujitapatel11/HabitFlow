@@ -1,18 +1,18 @@
-const Contract = require('../models/Contract');
-const AppUser = require('../models/AppUser');
+/**
+ * contractController.js — PledgeUp core
+ * Tiers: honor (rep stake) | reputation (permanent | stakes (Stripe escrow)
+ */
+const Contract   = require('../models/Contract');
+const AppUser    = require('../models/AppUser');
 const Connection = require('../models/Connection');
-const Post = require('../models/Post');
-const logger = require('../services/logger');
+const Post       = require('../models/Post');
+const { emailQueue } = require('../services/queues');
+const logger     = require('../services/logger');
 
-const utcDay = (d = new Date()) => { const dt = new Date(d); dt.setUTCHours(0,0,0,0); return dt; };
-
-/** POST /api/contracts */
-const createContract = async (req, res, next) => {
-  try {
-    const userId = req.user.sub;
-    const { habitId, habitName, category, durationDays, stakePoints } = req.body;
-
-    const existing = await Contract.findOne({ userId, habitId, status: 'active' });
+// nanoid for public slugs (ESM — use dynamic import shim)
+let _nanoid;
+const getNanoid = async () => {
+  if (!_nanoid) { const m = await import('nanoid'); _nanoid = m.nanoid; }
     if (existing)
       return res.status(400).json({ success: false, message: 'Active contract already exists for this habit' });
 

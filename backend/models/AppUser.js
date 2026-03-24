@@ -17,6 +17,28 @@ const appUserSchema = new mongoose.Schema(
     avatar: { type: String, default: '' },
     // Reputation score for leaderboard weighting (0–100)
     reputationScore: { type: Number, default: 50, min: 0, max: 100 },
+
+    // ── PledgeUp additions ────────────────────────────────────────────────
+    isPro:       { type: Boolean, default: false },
+    proExpiresAt: { type: Date, default: null },
+
+    // Permanent broken pledge record (reputation tier — never deleted)
+    brokenPledges: [{
+      habitName:    String,
+      durationDays: Number,
+      brokenOnDay:  Number,
+      brokenAt:     { type: Date, default: Date.now },
+      tier:         { type: String, enum: ['honor','reputation','stakes'], default: 'honor' },
+    }],
+
+    // Lockout: user cannot create new pledges until this date
+    lockoutUntil: { type: Date, default: null },
+
+    // Earned title from pledge completions
+    pledgeTitle: { type: String, default: 'Newcomer' },
+
+    // Stripe customer ID for Stakes tier
+    stripeCustomerId: { type: String, default: '' },
     // OTP fields
     resetOtp:       { type: String, default: null, select: false },
     resetOtpExpiry: { type: Date,   default: null, select: false },

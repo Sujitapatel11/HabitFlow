@@ -1,30 +1,209 @@
+/* ── Reset ───────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Design tokens ───────────────────────────────────────────────────────── */
+:root {
+  /* Space palette */
+  --bg:           #0A0A1A;
+  --surface:      #0F1128;
+  --surface-2:    #151830;
+  --border:       #1E2240;
+  --border-glow:  rgba(0,212,255,.25);
+
+  /* Accent */
+  --cyan:         #00D4FF;
+  --cyan-dim:     rgba(0,212,255,.15);
+  --green:        #00FF88;
+  --green-dim:    rgba(0,255,136,.15);
+  --amber:        #FFB800;
+  --amber-dim:    rgba(255,184,0,.15);
+  --red:          #FF3B5C;
+  --red-dim:      rgba(255,59,92,.15);
+  --purple:       #BF5FFF;
+  --purple-dim:   rgba(191,95,255,.15);
+
+  /* Text */
+  --text:         #E8EEFF;
+  --text-2:       #6B7DB3;
+  --text-3:       #2E3A5C;
+
+  /* Glow shadows */
+  --glow-cyan:    0 0 12px rgba(0,212,255,.45), 0 0 30px rgba(0,212,255,.15);
+  --glow-green:   0 0 12px rgba(0,255,136,.45), 0 0 30px rgba(0,255,136,.15);
+  --glow-red:     0 0 12px rgba(255,59,92,.45),  0 0 30px rgba(255,59,92,.15);
+  --glow-amber:   0 0 12px rgba(255,184,0,.45),  0 0 30px rgba(255,184,0,.15);
+  --glow-purple:  0 0 12px rgba(191,95,255,.45), 0 0 30px rgba(191,95,255,.15);
+
+  /* Radius */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+
+  /* Transitions */
+  --t-fast:   120ms ease;
+  --t-base:   220ms ease;
+  --t-slow:   400ms cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
 html, body {
   height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 16px;
-  color: #1a1a2e;
-  background: #f7f8fc;
+  color: var(--text);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+/* ── Global buttons ──────────────────────────────────────────────────────── */
 .btn-primary {
   display: inline-flex; align-items: center; gap: .4rem;
-  background: #6c63ff; color: #fff; text-decoration: none;
-  padding: .6rem 1.25rem; border-radius: 10px;
-  font-size: .875rem; font-weight: 600; border: none;
-  cursor: pointer; transition: background .2s, transform .1s;
-  white-space: nowrap;
+  background: var(--cyan); color: #000;
+  text-decoration: none; padding: .6rem 1.25rem;
+  border-radius: var(--r-md); font-size: .875rem;
+  font-weight: 700; border: none; cursor: pointer;
+  transition: box-shadow var(--t-base), transform var(--t-fast);
+  white-space: nowrap; letter-spacing: .02em;
 }
-.btn-primary:hover { background: #574fd6; transform: translateY(-1px); }
+.btn-primary:hover {
+  box-shadow: var(--glow-cyan);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 3px; }
+/* ── Skeleton shimmer ────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    var(--surface-2) 50%,
+    var(--surface) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: var(--r-md);
+}
 
-/* Global responsive helpers */
+/* ── Shake animation (error feedback) ───────────────────────────────────── */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-6px); }
+  40%     { transform: translateX(6px); }
+  60%     { transform: translateX(-4px); }
+  80%     { transform: translateX(4px); }
+}
+.shake { animation: shake 380ms cubic-bezier(.36,.07,.19,.97) both; }
+
+/* ── Fade-in-up (page entry) ─────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp var(--t-slow) both; }
+
+/* ── Pop scale (success feedback) ───────────────────────────────────────── */
+@keyframes popScale {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.07); }
+  70%  { transform: scale(.97); }
+  100% { transform: scale(1); }
+}
+.pop { animation: popScale 420ms cubic-bezier(.34,1.56,.64,1) both; }
+
+/* ── Pulse ring (AXIOM core) ─────────────────────────────────────────────── */
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(0,212,255,.5); }
+  70%  { box-shadow: 0 0 0 12px rgba(0,212,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,212,255,0); }
+}
+.pulse-ring { animation: pulseRing 2s infinite; }
+
+/* ── Confetti ────────────────────────────────────────────────────────────── */
+@keyframes confettiFall {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.confetti-piece {
+  position: fixed; top: 0; z-index: 9999; pointer-events: none;
+  animation: confettiFall linear forwards;
+}
+
+/* ── XP float popup ──────────────────────────────────────────────────────── */
+@keyframes xpFloat {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  60%  { opacity: 1; transform: translateY(-50px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-80px) scale(.9); }
+}
+.xp-popup {
+  position: fixed; top: 80px; right: 24px; z-index: 9000;
+  background: var(--surface-2); border: 1px solid var(--cyan);
+  color: var(--cyan); font-weight: 800; font-size: 1.1rem;
+  padding: .5rem 1rem; border-radius: var(--r-lg);
+  box-shadow: var(--glow-cyan);
+  animation: xpFloat 1.8s ease-out forwards;
+  pointer-events: none;
+}
+
+/* ── Badge popup ─────────────────────────────────────────────────────────── */
+@keyframes badgeSlide {
+  0%   { opacity: 0; transform: translateX(120px); }
+  15%  { opacity: 1; transform: translateX(0); }
+  80%  { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(120px); }
+}
+.badge-popup {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9000;
+  background: var(--surface-2);
+  border: 1px solid var(--purple);
+  box-shadow: var(--glow-purple);
+  border-radius: var(--r-lg); padding: 1rem 1.25rem;
+  display: flex; align-items: center; gap: .85rem;
+  animation: badgeSlide 4s ease-in-out forwards;
+  pointer-events: none; min-width: 220px;
+}
+.badge-pop-icon { font-size: 2rem; }
+.badge-pop-title { font-size: .7rem; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: .08em; }
+.badge-pop-name  { font-size: .95rem; font-weight: 700; color: var(--text); }
+
+/* ── Error banner ────────────────────────────────────────────────────────── */
+.error-banner {
+  background: var(--red-dim); border: 1px solid var(--red);
+  color: var(--red); padding: .75rem 1rem; border-radius: var(--r-md);
+  margin-bottom: 1rem; font-size: .875rem; cursor: pointer;
+  box-shadow: var(--glow-red);
+}
+
+/* ── Pending state (optimistic) ──────────────────────────────────────────── */
+.optimistic { opacity: .65; pointer-events: none; }
+.optimistic-failed {
+  border-color: var(--red) !important;
+  box-shadow: var(--glow-red) !important;
+}
+
+/* ── Page layout ─────────────────────────────────────────────────────────── */
+.page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+.page-header {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; flex-wrap: wrap;
+  gap: 1rem; margin-bottom: 1.75rem;
+}
+.page-header h1 { font-size: 1.7rem; font-weight: 700; color: var(--text); margin: 0 0 .25rem; }
+.sub { color: var(--text-2); font-size: .9rem; margin: 0; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   html { font-size: 14px; }
   .btn-primary { padding: .5rem 1rem; font-size: .82rem; }
+  .page { padding: 1.25rem 1rem; }
 }

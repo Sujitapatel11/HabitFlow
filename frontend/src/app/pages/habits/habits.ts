@@ -1,123 +1,169 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HabitService } from '../../services/habit.service';
-import { AuthService } from '../../core/auth.service';
 import { GamificationService } from '../../services/gamification.service';
+import { OptimisticService } from '../../services/optimistic.service';
+import { ShakeDirective } from '../../directives/shake.directive';
 import { EarnedBadgesPipe } from '../../pipes/earned-badges.pipe';
 import { Habit } from '../../models/habit.model';
 import { GoalCategory } from '../../models/user.model';
 
 @Component({
   selector: 'app-habits',
-  imports: [FormsModule, EarnedBadgesPipe],
+  imports: [FormsModule, EarnedBadgesPipe, ShakeDirective],
   templateUrl: './habits.html',
   styleUrl: './habits.css',
 })
 export class Habits implements OnInit {
-  habits = signal<Habit[]>([]);
-  loading = signal(true);
-  showForm = signal(false);
+  habits     = signal<Habit[]>([]);
+  loading    = signal(true);
+  showForm   = signal(false);
   submitting = signal(false);
-  error = signal('');
-  completingId = signal<string | null>(null); // for animation
+  error      = signal('');
+  // tracks which card is in a pending optimistic state
+  pendingId  = signal<string | null>(null);
+  // tracks which card failed (triggers shake + red glow)
+  failedId   = signal<string | null>(null);
+
+  skeletonCount = Array(4); // 4 skeleton cards while loading
 
   categories: GoalCategory[] = ['Coding','Fitness','Reading','Studying','Mindfulness','Nutrition','Other'];
   form: Partial<Habit> = { name: '', description: '', category: 'Other' };
 
   constructor(
-    private habitService: HabitService,
-    private auth: AuthService,
-    public gameSvc: GamificationService,
+    private habitSvc: HabitService,
+    public  gameSvc:  GamificationService,
+    private optimistic: OptimisticService,
   ) {}
 
   ngOnInit() {
-    this.habitService.getHabits().subscribe({
-      next: (res) => { this.habits.set(res.data); this.loading.set(false); },
-      error: () => { this.error.set('Failed to load habits'); this.loading.set(false); },
+    this.habitSvc.getHabits().subscribe({
+      next:  (res) => { this.habits.set(res.data); this.loading.set(false); },
+      error: ()    => { this.error.set('Transmission failed. Check backend.'); this.loading.set(false); },
     });
   }
 
   submit() {
-    if (!this.form.name?.trim()) { this.error.set('Name required'); return; }
+    if (!this.form.name?.trim()) { this.error.set('Mission name required'); return; }
     this.submitting.set(true);
-    this.habitService.createHabit({
-      name: this.form.name,
-      description: this.form.description,
-      category: this.form.category,
+
+    // Optimistic: prepend a temporary card immediately
+    const tempId = `temp_${Date.now()}`;
+    const tempHabit: Habit = {
+      _id: tempId, userId: '', name: this.form.name!, description: this.form.description || '',
+      category: (this.form.category as GoalCategory) || 'Other',
+      completed: false, streak: 0, lastCompletedDate: null, createdAt: new Date().toISOString(),
+    };
+    const rollback = this.optimistic.prepend(this.habits, tempHabit);
+
+    this.habitSvc.createHabit({
+      name: this.form.name, description: this.form.description, category: this.form.category,
     }).subscribe({
       next: (res) => {
-        this.habits.update(list => [res.data, ...list]);
+        // Replace temp card with real server response
+        this.habits.update(list => list.map(h => h._id === tempId ? res.data : h));
         this.form = { name: '', description: '', category: 'Other' };
         this.showForm.set(false);
         this.submitting.set(false);
       },
-      error: (err) => { this.error.set(err.error?.message || 'Failed'); this.submitting.set(false); },
+      error: (err) => {
+        rollback();
+        this.error.set(err.error?.message || 'Failed to create mission');
+        this.submitting.set(false);
+      },
     });
   }
 
   toggle(habit: Habit) {
+    if (habit._id.startsWith('temp_')) return; // guard against clicking pending cards
+
     if (!habit.completed) {
-      // Complete — server calculates XP and streak
-      this.completingId.set(habit._id);
-      this.habitService.completeHabit(habit._id).subscribe({
+      // ── Optimistic complete ──────────────────────────────────────────────
+      this.pendingId.set(habit._id);
+      const rollback = this.optimistic.updateItem(this.habits, habit._id, {
+        completed: true,
+        streak: habit.streak + 1,
+      });
+
+      this.habitSvc.completeHabit(habit._id).subscribe({
         next: (res) => {
+          // Replace with authoritative server data
           this.habits.update(list => list.map(h => h._id === habit._id ? res.data : h));
-          // Use server-returned XP — never calculate on client
           this.gameSvc.addXP(res.xpGained);
           this.launchConfetti();
           const all = this.habits();
-          const completedCount = all.filter(h => h.completed).length;
-          const maxStreak = Math.max(...all.map(h => h.streak), 0);
-          this.gameSvc.checkBadges(completedCount, maxStreak, false);
-          setTimeout(() => this.completingId.set(null), 800);
+          this.gameSvc.checkBadges(
+            all.filter(h => h.completed).length,
+            Math.max(...all.map(h => h.streak), 0),
+            false
+          );
+          this.pendingId.set(null);
         },
-        error: (err) => { this.error.set(err.error?.message || 'Failed'); this.completingId.set(null); },
+        error: (err) => {
+          rollback();
+          this.pendingId.set(null);
+          this.failedId.set(habit._id);
+          this.error.set(err.error?.message || 'Check-in failed');
+          setTimeout(() => this.failedId.set(null), 800);
+        },
       });
     } else {
-      this.habitService.undoHabit(habit._id).subscribe({
+      // ── Optimistic undo ──────────────────────────────────────────────────
+      const rollback = this.optimistic.updateItem(this.habits, habit._id, {
+        completed: false,
+        streak: Math.max(0, habit.streak - 1),
+      });
+
+      this.habitSvc.undoHabit(habit._id).subscribe({
         next: (res) => this.habits.update(list => list.map(h => h._id === habit._id ? res.data : h)),
-        error: (err) => this.error.set(err.error?.message || 'Failed'),
+        error: (err) => {
+          rollback();
+          this.error.set(err.error?.message || 'Undo failed');
+        },
       });
     }
   }
 
   delete(id: string) {
-    if (!confirm('Delete this habit?')) return;
-    this.habitService.deleteHabit(id).subscribe({
-      next: () => this.habits.update(list => list.filter(h => h._id !== id)),
+    if (!confirm('Delete this mission?')) return;
+    const rollback = this.optimistic.remove(this.habits, id);
+    this.habitSvc.deleteHabit(id).subscribe({
+      error: () => { rollback(); this.error.set('Delete failed'); },
     });
   }
 
   launchConfetti() {
-    const colors = ['#6c63ff','#22c55e','#f59e0b','#48cae4','#ec4899'];
-    for (let i = 0; i < 60; i++) {
+    const colors = ['#00D4FF','#00FF88','#FFB800','#BF5FFF','#FF3B5C'];
+    for (let i = 0; i < 55; i++) {
       const el = document.createElement('div');
       el.className = 'confetti-piece';
       el.style.cssText = `
         left:${Math.random()*100}vw;
         background:${colors[Math.floor(Math.random()*colors.length)]};
-        animation-duration:${0.8 + Math.random()*1.2}s;
-        animation-delay:${Math.random()*0.4}s;
-        width:${6+Math.random()*6}px;
-        height:${6+Math.random()*6}px;
-        border-radius:${Math.random()>0.5?'50%':'2px'};
+        animation-duration:${0.9+Math.random()*1.1}s;
+        animation-delay:${Math.random()*0.35}s;
+        width:${5+Math.random()*7}px; height:${5+Math.random()*7}px;
+        border-radius:${Math.random()>.5?'50%':'2px'};
       `;
       document.body.appendChild(el);
-      setTimeout(() => el.remove(), 2000);
+      setTimeout(() => el.remove(), 2200);
     }
   }
 
   getCategoryColor(cat: string): string {
-    const m: Record<string,string> = { Coding:'#6c63ff', Fitness:'#f59e0b', Reading:'#22c55e', Studying:'#48cae4', Mindfulness:'#ec4899', Nutrition:'#10b981', Other:'#94a3b8' };
-    return m[cat] || '#94a3b8';
+    const m: Record<string,string> = {
+      Coding:'#00D4FF', Fitness:'#FFB800', Reading:'#00FF88',
+      Studying:'#48cae4', Mindfulness:'#BF5FFF', Nutrition:'#10b981', Other:'#6B7DB3',
+    };
+    return m[cat] || '#6B7DB3';
   }
 
   xpProgress(): number {
     const s = this.gameSvc.stats();
-    const levels = [0, 100, 250, 500, 900, 1500];
-    const lvlIdx = s.level - 1;
-    const current = levels[lvlIdx] || 0;
-    const next = levels[lvlIdx + 1] || current + 100;
-    return Math.min(((s.xp - current) / (next - current)) * 100, 100);
+    const levels = [0,100,250,500,900,1500];
+    const idx = s.level - 1;
+    const cur  = levels[idx]   || 0;
+    const next = levels[idx+1] || cur + 100;
+    return Math.min(((s.xp - cur) / (next - cur)) * 100, 100);
   }
 }

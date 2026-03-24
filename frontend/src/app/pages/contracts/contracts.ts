@@ -3,12 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { ContractService } from '../../services/contract.service';
 import { HabitService } from '../../services/habit.service';
 import { AuthService } from '../../core/auth.service';
+import { OptimisticService } from '../../services/optimistic.service';
+import { ShakeDirective } from '../../directives/shake.directive';
 import { Contract } from '../../models/contract.model';
 import { Habit } from '../../models/habit.model';
 
 @Component({
   selector: 'app-contracts',
-  imports: [FormsModule],
+  imports: [FormsModule, ShakeDirective],
   templateUrl: './contracts.html',
   styleUrl: './contracts.css',
 })
@@ -23,13 +25,17 @@ export class Contracts implements OnInit {
   error = signal('');
   checkInNote = signal<Record<string, string>>({});
   checkingIn = signal<string | null>(null);
+  votingId   = signal<string | null>(null);
+  failedId   = signal<string | null>(null);
 
+  skeletonCount = Array(3);
   form = { habitId: '', durationDays: 30, stakePoints: 100 };
 
   constructor(
     private contractSvc: ContractService,
     private habitSvc: HabitService,
     private auth: AuthService,
+    private optimistic: OptimisticService,
   ) {}
 
   ngOnInit() {
@@ -73,13 +79,25 @@ export class Contracts implements OnInit {
   doCheckIn(contract: Contract) {
     const note = this.checkInNote()[contract._id] || '';
     this.checkingIn.set(contract._id);
+
+    // Optimistic: increment completedDays immediately
+    const rollback = this.optimistic.updateItem(this.myContracts, contract._id, {
+      completedDays: contract.completedDays + 1,
+    });
+
     this.contractSvc.checkIn(contract._id, note).subscribe({
       next: (res) => {
         this.myContracts.update(list => list.map(c => c._id === contract._id ? res.data : c));
         this.updateNote(contract._id, '');
         this.checkingIn.set(null);
       },
-      error: (err) => { this.error.set(err.error?.message || 'Check-in failed'); this.checkingIn.set(null); },
+      error: (err) => {
+        rollback();
+        this.checkingIn.set(null);
+        this.failedId.set(contract._id);
+        this.error.set(err.error?.message || 'Check-in failed');
+        setTimeout(() => this.failedId.set(null), 800);
+      },
     });
   }
 
@@ -90,10 +108,17 @@ export class Contracts implements OnInit {
   }
 
   vote(contract: Contract, vote: 'legit' | 'doubt') {
+    this.votingId.set(contract._id + vote);
     const user = this.auth.currentUser()!;
     this.contractSvc.witnessVote(contract._id, user._id, user.name, vote).subscribe({
-      next: (res) => this.communityContracts.update(list => list.map(c => c._id === contract._id ? res.data : c)),
-      error: (err) => this.error.set(err.error?.message || 'Vote failed'),
+      next: (res) => {
+        this.communityContracts.update(list => list.map(c => c._id === contract._id ? res.data : c));
+        this.votingId.set(null);
+      },
+      error: (err) => {
+        this.votingId.set(null);
+        this.error.set(err.error?.message || 'Vote failed');
+      },
     });
   }
 
