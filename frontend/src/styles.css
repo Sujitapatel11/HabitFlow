@@ -4,41 +4,45 @@
 /* ── Design tokens ───────────────────────────────────────────────────────── */
 :root {
   /* Space palette */
-  --bg:           #0A0A1A;
-  --surface:      #0F1128;
-  --surface-2:    #151830;
-  --border:       #1E2240;
-  --border-glow:  rgba(0,212,255,.25);
+  --bg:           #080818;
+  --surface:      #0e1029;
+  --surface-2:    #141630;
+  --surface-3:    #1a1e3a;
+  --border:       #1f2444;
+  --border-light: #252b50;
+  --border-glow:  rgba(0,212,255,.2);
 
   /* Accent */
   --cyan:         #00D4FF;
-  --cyan-dim:     rgba(0,212,255,.15);
-  --green:        #00FF88;
-  --green-dim:    rgba(0,255,136,.15);
+  --cyan-dim:     rgba(0,212,255,.12);
+  --green:        #00E87A;
+  --green-dim:    rgba(0,232,122,.12);
   --amber:        #FFB800;
-  --amber-dim:    rgba(255,184,0,.15);
-  --red:          #FF3B5C;
-  --red-dim:      rgba(255,59,92,.15);
-  --purple:       #BF5FFF;
-  --purple-dim:   rgba(191,95,255,.15);
+  --amber-dim:    rgba(255,184,0,.12);
+  --red:          #FF4466;
+  --red-dim:      rgba(255,68,102,.12);
+  --purple:       #B06EFF;
+  --purple-dim:   rgba(176,110,255,.12);
+  --pink:         #FF6EB4;
 
   /* Text */
-  --text:         #E8EEFF;
-  --text-2:       #6B7DB3;
+  --text:         #EEF0FF;
+  --text-2:       #7B8DB8;
   --text-3:       #2E3A5C;
 
   /* Glow shadows */
-  --glow-cyan:    0 0 12px rgba(0,212,255,.45), 0 0 30px rgba(0,212,255,.15);
-  --glow-green:   0 0 12px rgba(0,255,136,.45), 0 0 30px rgba(0,255,136,.15);
-  --glow-red:     0 0 12px rgba(255,59,92,.45),  0 0 30px rgba(255,59,92,.15);
-  --glow-amber:   0 0 12px rgba(255,184,0,.45),  0 0 30px rgba(255,184,0,.15);
-  --glow-purple:  0 0 12px rgba(191,95,255,.45), 0 0 30px rgba(191,95,255,.15);
+  --glow-cyan:    0 0 16px rgba(0,212,255,.4), 0 0 40px rgba(0,212,255,.12);
+  --glow-green:   0 0 16px rgba(0,232,122,.4), 0 0 40px rgba(0,232,122,.12);
+  --glow-red:     0 0 16px rgba(255,68,102,.4), 0 0 40px rgba(255,68,102,.12);
+  --glow-amber:   0 0 16px rgba(255,184,0,.4),  0 0 40px rgba(255,184,0,.12);
+  --glow-purple:  0 0 16px rgba(176,110,255,.4),0 0 40px rgba(176,110,255,.12);
 
   /* Radius */
   --r-sm: 6px;
   --r-md: 10px;
   --r-lg: 14px;
-  --r-xl: 20px;
+  --r-xl: 18px;
+  --r-2xl: 24px;
 
   /* Transitions */
   --t-fast:   120ms ease;
@@ -59,7 +63,7 @@ html, body {
 /* ── Scrollbar ───────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--surface); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
 
 /* ── Global buttons ──────────────────────────────────────────────────────── */
@@ -72,11 +76,16 @@ html, body {
   transition: box-shadow var(--t-base), transform var(--t-fast);
   white-space: nowrap; letter-spacing: .02em;
 }
-.btn-primary:hover {
-  box-shadow: var(--glow-cyan);
-  transform: translateY(-1px);
-}
+.btn-primary:hover { box-shadow: var(--glow-cyan); transform: translateY(-1px); }
 .btn-primary:active { transform: translateY(0); }
+
+/* ── Card base ───────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 1.5rem;
+}
 
 /* ── Skeleton shimmer ────────────────────────────────────────────────────── */
 @keyframes shimmer {
@@ -84,18 +93,13 @@ html, body {
   100% { background-position:  600px 0; }
 }
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--surface) 25%,
-    var(--surface-2) 50%,
-    var(--surface) 75%
-  );
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
   background-size: 600px 100%;
   animation: shimmer 1.4s infinite linear;
   border-radius: var(--r-md);
 }
 
-/* ── Shake animation (error feedback) ───────────────────────────────────── */
+/* ── Shake animation ─────────────────────────────────────────────────────── */
 @keyframes shake {
   0%,100% { transform: translateX(0); }
   20%     { transform: translateX(-6px); }
@@ -105,14 +109,14 @@ html, body {
 }
 .shake { animation: shake 380ms cubic-bezier(.36,.07,.19,.97) both; }
 
-/* ── Fade-in-up (page entry) ─────────────────────────────────────────────── */
+/* ── Fade-in-up ──────────────────────────────────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-up { animation: fadeUp var(--t-slow) both; }
 
-/* ── Pop scale (success feedback) ───────────────────────────────────────── */
+/* ── Pop scale ───────────────────────────────────────────────────────────── */
 @keyframes popScale {
   0%   { transform: scale(1); }
   40%  { transform: scale(1.07); }
@@ -121,7 +125,7 @@ html, body {
 }
 .pop { animation: popScale 420ms cubic-bezier(.34,1.56,.64,1) both; }
 
-/* ── Pulse ring (AXIOM core) ─────────────────────────────────────────────── */
+/* ── Pulse ring ──────────────────────────────────────────────────────────── */
 @keyframes pulseRing {
   0%   { box-shadow: 0 0 0 0 rgba(0,212,255,.5); }
   70%  { box-shadow: 0 0 0 12px rgba(0,212,255,0); }
@@ -164,88 +168,160 @@ html, body {
 }
 .badge-popup {
   position: fixed; bottom: 24px; right: 24px; z-index: 9000;
-  background: var(--surface-2);
-  border: 1px solid var(--purple);
-  box-shadow: var(--glow-purple);
-  border-radius: var(--r-lg); padding: 1rem 1.25rem;
-  display: flex; align-items: center; gap: .85rem;
+  background: var(--surface-2); border: 1px solid var(--purple);
+  box-shadow: var(--glow-purple); border-radius: var(--r-lg);
+  padding: 1rem 1.25rem; display: flex; align-items: center; gap: .85rem;
   animation: badgeSlide 4s ease-in-out forwards;
   pointer-events: none; min-width: 220px;
 }
-.badge-pop-icon { font-size: 2rem; }
+.badge-pop-icon  { font-size: 2rem; }
 .badge-pop-title { font-size: .7rem; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: .08em; }
 .badge-pop-name  { font-size: .95rem; font-weight: 700; color: var(--text); }
 
-/* ── Error banner ────────────────────────────────────────────────────────── */
+/* ── Alert / banner ──────────────────────────────────────────────────────── */
 .error-banner {
-  background: var(--red-dim); border: 1px solid var(--red);
+  background: var(--red-dim); border: 1px solid rgba(255,68,102,.3);
   color: var(--red); padding: .75rem 1rem; border-radius: var(--r-md);
   margin-bottom: 1rem; font-size: .875rem; cursor: pointer;
-  box-shadow: var(--glow-red);
+}
+.success-banner {
+  background: var(--green-dim); border: 1px solid rgba(0,232,122,.3);
+  color: var(--green); padding: .75rem 1rem; border-radius: var(--r-md);
+  margin-bottom: 1rem; font-size: .875rem;
 }
 
-/* ── Pending state (optimistic) ──────────────────────────────────────────── */
+/* ── Optimistic states ───────────────────────────────────────────────────── */
 .optimistic { opacity: .65; pointer-events: none; }
-.optimistic-failed {
-  border-color: var(--red) !important;
-  box-shadow: var(--glow-red) !important;
-}
+.optimistic-failed { border-color: var(--red) !important; box-shadow: var(--glow-red) !important; }
 
 /* ── Page layout ─────────────────────────────────────────────────────────── */
 .page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 .page-header {
   display: flex; justify-content: space-between;
   align-items: flex-start; flex-wrap: wrap;
-  gap: 1rem; margin-bottom: 1.75rem;
+  gap: 1rem; margin-bottom: 2rem;
 }
-.page-header h1 { font-size: 1.7rem; font-weight: 700; color: var(--text); margin: 0 0 .25rem; }
+.page-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text); margin: 0 0 .3rem; }
 .sub { color: var(--text-2); font-size: .9rem; margin: 0; }
+
+/* ── Shared tab bar ──────────────────────────────────────────────────────── */
+.tabs {
+  display: flex; gap: .25rem; margin-bottom: 1.5rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 4px;
+}
+.tab {
+  flex: 1; padding: .5rem .75rem; background: none; border: none;
+  cursor: pointer; color: var(--text-2); font-size: .85rem; font-weight: 500;
+  border-radius: var(--r-md); transition: all var(--t-base);
+  display: flex; align-items: center; justify-content: center; gap: .35rem;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text); background: var(--surface-2); }
+.tab.active { background: var(--surface-3); color: var(--cyan); font-weight: 600; }
+.tab-badge {
+  background: var(--cyan-dim); color: var(--cyan);
+  font-size: .68rem; padding: .1rem .4rem; border-radius: 99px; font-weight: 700;
+}
+.tab-badge.pending { background: var(--amber-dim); color: var(--amber); }
+
+/* ── Shared form elements ────────────────────────────────────────────────── */
+.form-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-xl); padding: 1.5rem; margin-bottom: 1.5rem;
+}
+.form-card h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0 0 .5rem; }
+.form-sub { font-size: .83rem; color: var(--text-2); margin: 0 0 1.25rem; line-height: 1.5; }
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .85rem; }
+.form-group label, label {
+  font-size: .75rem; font-weight: 600; color: var(--text-2);
+  text-transform: uppercase; letter-spacing: .06em;
+}
+input, select, textarea {
+  padding: .65rem .9rem; border: 1.5px solid var(--border);
+  border-radius: var(--r-md); font-size: .9rem; outline: none;
+  font-family: inherit; background: var(--surface-2); color: var(--text);
+  transition: border-color var(--t-base), box-shadow var(--t-base);
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0,212,255,.1);
+}
+select option { background: var(--surface-2); }
+textarea { resize: vertical; }
+.btn-submit {
+  background: var(--cyan); color: #000; border: none;
+  padding: .65rem 1.5rem; border-radius: var(--r-md);
+  font-size: .9rem; font-weight: 700; cursor: pointer;
+  transition: box-shadow var(--t-base), transform var(--t-fast);
+}
+.btn-submit:hover { box-shadow: var(--glow-cyan); transform: translateY(-1px); }
+.btn-submit:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── Shared section card ─────────────────────────────────────────────────── */
+.section-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-xl); padding: 1.35rem; margin-bottom: 1.25rem;
+}
+.section-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1rem;
+}
+.section-head h2, .section-title {
+  font-size: .95rem; font-weight: 700; color: var(--text); margin: 0;
+}
+.section-meta { font-size: .8rem; color: var(--text-2); }
+.link { font-size: .82rem; color: var(--cyan); text-decoration: none; font-weight: 600; transition: opacity var(--t-fast); }
+.link:hover { opacity: .75; }
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-2); }
+.empty-icon  { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state h3 { color: var(--text); margin: 0 0 .5rem; font-size: 1.1rem; }
+.empty-state p  { font-size: .9rem; }
+.empty-state a  { color: var(--cyan); text-decoration: none; font-weight: 600; }
+
+/* ── Loading ─────────────────────────────────────────────────────────────── */
+.loading { display: flex; flex-direction: column; align-items: center; padding: 4rem; color: var(--text-2); gap: 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 32px; height: 32px; border: 2px solid var(--border);
+  border-top-color: var(--cyan); border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+/* ── Progress bar ────────────────────────────────────────────────────────── */
+.progress-track { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.progress-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  transition: width 600ms cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 6px rgba(0,212,255,.4);
+}
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   html { font-size: 14px; }
   .btn-primary { padding: .5rem 1rem; font-size: .82rem; }
   .page { padding: 1.25rem 1rem; }
+  .page-header h1 { font-size: 1.35rem; }
 }
 
-/* ── Resistance animations (anti-cheat UX — invisible to normal users) ───── */
-
-/* WATCH tier: button feels slightly heavy */
-.resist-watch {
-  transition: transform 250ms cubic-bezier(.4,0,.6,1),
-              box-shadow 250ms ease,
-              opacity 250ms ease !important;
-}
-.resist-watch:active {
-  transform: scale(.97) !important;
-}
-
-/* SHADOW tier: button pushes back before firing */
+/* ── Resistance animations (anti-cheat — invisible to normal users) ──────── */
+.resist-watch { transition: transform 250ms cubic-bezier(.4,0,.6,1), box-shadow 250ms ease, opacity 250ms ease !important; }
+.resist-watch:active { transform: scale(.97) !important; }
 @keyframes resistPush {
   0%   { transform: scale(1); }
   30%  { transform: scale(.94) translateY(2px); }
   60%  { transform: scale(.97) translateY(1px); }
   100% { transform: scale(1); }
 }
-.resist-shadow {
-  animation: resistPush 380ms cubic-bezier(.4,0,.2,1) !important;
-  transition: opacity 380ms ease !important;
-}
-
-/* GHOST tier: button appears to "think" — subtle opacity pulse */
+.resist-shadow { animation: resistPush 380ms cubic-bezier(.4,0,.2,1) !important; transition: opacity 380ms ease !important; }
 @keyframes resistThink {
   0%,100% { opacity: 1; }
   40%     { opacity: .55; }
   70%     { opacity: .8; }
 }
-.resist-ghost {
-  animation: resistThink 750ms ease-in-out !important;
-  pointer-events: none;
-}
-
-/* Subtle magnetic resistance on hover for SHADOW/GHOST (feels like friction) */
-.resist-shadow:hover,
-.resist-ghost:hover {
-  transform: scale(.99) !important;
-  transition: transform 300ms cubic-bezier(.4,0,.6,1) !important;
-}
+.resist-ghost { animation: resistThink 750ms ease-in-out !important; pointer-events: none; }
+.resist-shadow:hover, .resist-ghost:hover { transform: scale(.99) !important; transition: transform 300ms cubic-bezier(.4,0,.6,1) !important; }
