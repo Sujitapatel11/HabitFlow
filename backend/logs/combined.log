@@ -419,3 +419,18 @@
 2026-03-24 22:36:27 [INFO] MongoDB connected
 2026-03-24 22:36:27 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
 2026-03-24 22:36:27 [INFO] Server running on port 3001
+2026-03-24 22:39:40 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:39:40 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:39:41 [INFO] MongoDB connected
+2026-03-24 22:39:41 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:39:41 [INFO] Server running on port 3001
+2026-03-24 22:41:02 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:41:02 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:41:03 [INFO] MongoDB connected
+2026-03-24 22:41:03 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:41:03 [INFO] Server running on port 3001
+2026-03-24 22:42:35 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 22:42:35 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 22:42:37 [INFO] MongoDB connected
+2026-03-24 22:42:37 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 22:42:37 [INFO] Server running on port 3001
