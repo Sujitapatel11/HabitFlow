@@ -58,6 +58,13 @@ const schemas = {
     frequency:   Joi.string().valid('daily','weekly').default('daily'),
   }),
 
+  updateHabit: Joi.object({
+    name:        Joi.string().trim().min(1).max(100),
+    description: Joi.string().max(300).allow(''),
+    category:    Joi.string().valid(...CATEGORIES),
+    frequency:   Joi.string().valid('daily','weekly'),
+  }),
+
   createContract: Joi.object({
     habitId:      Joi.string().hex().length(24).required(),
     habitName:    Joi.string().trim().max(100).required(),

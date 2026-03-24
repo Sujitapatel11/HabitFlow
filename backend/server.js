@@ -75,15 +75,22 @@ app.use('/api/upload',      require('./routes/uploadRoutes'));
 app.use('/api/messages',    require('./routes/messageRoutes'));
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
-app.get('/metrics', metricsHandler); // Prometheus scrape endpoint (protect with auth in production)
+app.get('/metrics', metricsHandler);
+
+// ── 404 for unknown API routes ────────────────────────────────────────────────
+app.use('/api', (req, res) => {
+  res.status(404).json({ success: false, message: `Route ${req.method} ${req.path} not found` });
+});
 
 // ── Error handler (must be last middleware) ───────────────────────────────────
 app.use(errorHandler);
 
 // ── Serve Angular frontend (production) ──────────────────────────────────────
 const frontendDist = path.join(__dirname, '../frontend/dist/frontend/browser');
-app.use(express.static(frontendDist));
-app.get('*', (req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
+if (require('fs').existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
+}
 
 // ── Database + Server startup ─────────────────────────────────────────────────
 mongoose

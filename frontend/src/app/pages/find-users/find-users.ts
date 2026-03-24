@@ -42,19 +42,18 @@ export class FindUsers implements OnInit {
       next: (res) => this.similarUsers.set(res.data),
     });
 
-    this.peopleSvc.getMyConnections(me._id).subscribe({
+    this.peopleSvc.getMyConnections().subscribe({
       next: (res) => this.myConnections.set(res.data),
     });
 
-    this.peopleSvc.getPending(me._id).subscribe({
+    this.peopleSvc.getPending().subscribe({
       next: (res) => this.pendingRequests.set(res.data),
     });
   }
 
   loadStatuses(users: AppUser[]) {
-    const me = this.peopleSvc.currentProfile()!;
     users.forEach(u => {
-      this.peopleSvc.getConnectionStatus(me._id, u._id).subscribe({
+      this.peopleSvc.getConnectionStatus(u._id).subscribe({
         next: (res) => {
           this.connectionStatuses.update(s => ({ ...s, [u._id]: res.status }));
         },
@@ -63,13 +62,11 @@ export class FindUsers implements OnInit {
   }
 
   connect(user: AppUser) {
-    const me = this.peopleSvc.currentProfile()!;
     // Optimistically mark as pending immediately
     this.connectionStatuses.update(s => ({ ...s, [user._id]: 'pending' }));
 
-    this.peopleSvc.sendRequest(me._id, user._id).subscribe({
+    this.peopleSvc.sendRequest(user._id).subscribe({
       error: (err: any) => {
-        // If backend says already exists, use the real status from the error
         const status = err.error?.status || 'none';
         this.connectionStatuses.update(s => ({ ...s, [user._id]: status }));
       },

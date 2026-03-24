@@ -35,9 +35,8 @@ if (REDIS_URL) {
   }, { connection, concurrency: 10 });
 
   reflectionWorker = new Worker('reflection', async (job) => {
-    const { generateReflection } = require('./reflectionEngine');
-    await generateReflection(job.data.userId);
-    logger.info(`[Queue:reflection] Generated for ${job.data.userId}`);
+    // Placeholder: reflection generation runs on-demand via HTTP
+    logger.info(`[Queue:reflection] job received for ${job.data.userId}`);
   }, { connection, concurrency: 2 });
 
   // Error handlers

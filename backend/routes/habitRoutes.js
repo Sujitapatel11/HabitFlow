@@ -10,7 +10,7 @@ router.use(protect);
 
 router.get('/',                                                                       getHabits);
 router.post('/',          validate(schemas.createHabit),                              createHabit);
-router.put('/:id',        validate(schemas.createHabit.fork(['name'], s => s.optional())), updateHabit);
+router.put('/:id', validate(schemas.updateHabit), updateHabit);
 router.post('/:id/complete', habitActionLimiter, shadowGate('complete'),              completeHabit);
 router.post('/:id/undo',     habitActionLimiter, shadowGate('undo'),                  undoHabit);
 router.delete('/:id',                                                                 deleteHabit);

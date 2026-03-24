@@ -32,7 +32,7 @@ const appUserSchema = new mongoose.Schema(
     }],
 
     // Lockout: user cannot create new pledges until this date
-    lockoutUntil: { type: Date, default: null },
+    pledgeLockoutUntil: { type: Date, default: null },
 
     // Earned title from pledge completions
     pledgeTitle: { type: String, default: 'Newcomer' },

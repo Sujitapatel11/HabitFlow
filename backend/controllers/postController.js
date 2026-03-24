@@ -1,4 +1,5 @@
-const Post = require('../models/Post');
+const Post    = require('../models/Post');
+const AppUser = require('../models/AppUser');
 
 /** GET /api/posts?page=1&limit=20 — paginated community feed */
 const getPosts = async (req, res, next) => {
@@ -29,8 +30,9 @@ const createPost = async (req, res, next) => {
     if (!habitName || !message)
       return res.status(400).json({ success: false, message: 'habitName and message required' });
 
-    const authorId = req.user.sub; // from JWT
-    const authorName = req.user.name || 'Anonymous';
+    const authorId = req.user.sub;
+    const user = await AppUser.findById(authorId).select('name').lean();
+    const authorName = user?.name || 'Anonymous';
 
     const post = await Post.create({
       authorId,

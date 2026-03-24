@@ -1,4 +1,4 @@
-const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
+const rateLimit = require('express-rate-limit');
 
 const make = (windowMs, max, message) =>
   rateLimit({
@@ -7,11 +7,13 @@ const make = (windowMs, max, message) =>
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message },
-    // Key by userId if available, else IP via ipKeyGenerator (handles IPv6 safely)
+    // Key by userId if authenticated, else by IP
     keyGenerator: (req) => {
       const userId = req.user?.sub;
       if (userId) return userId;
-      return ipKeyGenerator(req);
+      // Normalize IPv6-mapped IPv4 addresses
+      const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+      return ip.replace(/^::ffff:/, '');
     },
   });
 

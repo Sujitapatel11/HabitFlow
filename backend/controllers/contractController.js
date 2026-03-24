@@ -108,7 +108,7 @@ const witnessVote = async (req, res, next) => {
     if (!contract) return res.status(404).json({ success: false, message: 'Contract not found' });
     if (contract.status !== 'active')
       return res.status(400).json({ success: false, message: 'Contract is not active' });
-    if (contract.userId === voterId)
+    if (contract.userId.toString() === voterId)
       return res.status(400).json({ success: false, message: 'Cannot witness your own contract' });
 
     const isConnected = await Connection.findOne({

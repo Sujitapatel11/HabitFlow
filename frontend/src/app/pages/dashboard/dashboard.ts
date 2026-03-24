@@ -68,7 +68,7 @@ export class Dashboard implements OnInit {
         next: (res) => this.similarUsers.set(res.data.slice(0, 4)),
         error: () => {},
       });
-      this.peopleSvc.getMyConnections(me._id).subscribe({
+      this.peopleSvc.getMyConnections().subscribe({
         next: (res) => this.myConnections.set(res.data.slice(0, 4)),
         error: () => {},
       });

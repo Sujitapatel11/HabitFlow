@@ -48,8 +48,9 @@ function getRankLabel(score) {
 
 const getReflection = async (req, res, next) => {
   try {
-    const { userId, userName } = req.query;
-    if (!userId) return res.status(400).json({ success: false, message: 'userId required' });
+    // userId always from JWT — never from query params
+    const userId   = req.user.sub;
+    const userName = req.user.email; // used for community post count lookup
 
     const { start: weekStart, end: weekEnd } = getWeekRange(0);
     const { start: prevStart, end: prevEnd } = getWeekRange(1);
@@ -128,9 +129,9 @@ const getReflection = async (req, res, next) => {
     const missedHabits = allHabits.filter(h => !h.completed);
     const weakestHabit = missedHabits[0] || null;
 
-    // Community participation (posts this week)
+    // Community participation (posts this week by this user)
     const weekPosts = await Post.countDocuments({
-      authorName: userName || '',
+      authorId: userId,
       createdAt: { $gte: weekStart, $lt: weekEnd },
     });
     const communityParticipation = Math.min(weekPosts * 20, 100); // 5 posts = 100%

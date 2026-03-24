@@ -27,12 +27,14 @@ export class PeopleService {
     );
   }
 
-  sendRequest(senderId: string, receiverId: string) {
-    return this.http.post<any>(`${this.connApi}/request`, { senderId, receiverId });
+  /** senderId is taken from JWT on the backend — only receiverId needed */
+  sendRequest(receiverId: string) {
+    return this.http.post<any>(`${this.connApi}/request`, { receiverId });
   }
 
-  getPending(userId: string) {
-    return this.http.get<any>(`${this.connApi}/pending?userId=${userId}`);
+  /** userId is taken from JWT on the backend */
+  getPending() {
+    return this.http.get<any>(`${this.connApi}/pending`);
   }
 
   acceptRequest(connectionId: string) {
@@ -43,11 +45,13 @@ export class PeopleService {
     return this.http.post<any>(`${this.connApi}/reject`, { connectionId });
   }
 
-  getMyConnections(userId: string) {
-    return this.http.get<any>(`${this.connApi}/my-connections?userId=${userId}`);
+  /** userId is taken from JWT on the backend */
+  getMyConnections() {
+    return this.http.get<any>(`${this.connApi}/my-connections`);
   }
 
-  getConnectionStatus(senderId: string, receiverId: string) {
-    return this.http.get<any>(`${this.connApi}/status?senderId=${senderId}&receiverId=${receiverId}`);
+  /** senderId is taken from JWT on the backend — only receiverId needed */
+  getConnectionStatus(receiverId: string) {
+    return this.http.get<any>(`${this.connApi}/status?receiverId=${receiverId}`);
   }
 }
