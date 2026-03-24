@@ -33,7 +33,11 @@ export class AddHabit {
     this.submitting.set(true);
     this.error.set('');
 
-    this.habitService.createHabit(this.form).subscribe({
+    this.habitService.createHabit({
+      name: this.form.name!,
+      description: this.form.description,
+      category: this.form.category,
+    }).subscribe({
       next: () => {
         this.success.set(true);
         setTimeout(() => this.router.navigate(['/habits']), 1200);

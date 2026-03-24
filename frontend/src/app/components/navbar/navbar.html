@@ -13,6 +13,12 @@
     <a routerLink="/find-users" routerLinkActive="active" (click)="menuOpen.set(false)">Find People</a>
     <a routerLink="/mirror" routerLinkActive="active" (click)="menuOpen.set(false)">🧠 Mirror</a>
     <a routerLink="/contracts" routerLinkActive="active" (click)="menuOpen.set(false)">🤝 Contracts</a>
+    <a routerLink="/chat" routerLinkActive="active" (click)="menuOpen.set(false)" class="chat-link">
+      💬 Messages
+      @if (chatSvc.unreadTotal() > 0) {
+        <span class="chat-badge">{{ chatSvc.unreadTotal() }}</span>
+      }
+    </a>
   </div>
 
   <div class="nav-right">
@@ -43,6 +49,16 @@
         <div class="backdrop" (click)="showNotifs.set(false)"></div>
       }
     </div>
+
+    <!-- Avatar + profile link -->
+    <a routerLink="/profile" class="avatar-btn" title="My Profile">
+      @if (auth.currentUser()?.avatar) {
+        <img [src]="auth.currentUser()!.avatar" alt="avatar" class="nav-avatar" />
+      } @else {
+        <div class="nav-avatar-letter">{{ auth.currentUser()?.name?.charAt(0) ?? '?' }}</div>
+      }
+    </a>
+
     <div class="user-info">
       <span class="user-name">{{ auth.currentUser()?.name }}</span>
       <button class="logout-btn" (click)="auth.logout()">Log out</button>

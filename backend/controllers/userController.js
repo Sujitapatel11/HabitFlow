@@ -1,53 +1,40 @@
-const User = require('../models/User');
-const Habit = require('../models/Habit');
+const AppUser = require('../models/AppUser');
+const cache   = require('../services/cacheService');
+const logger  = require('../services/logger');
 
-/** GET /api/users/similar-goals — find users with overlapping goals */
-const getSimilarUsers = async (req, res, next) => {
-  try {
-    const me = await User.findById(req.user.id);
-    if (!me.goals.length)
-      return res.json({ success: true, data: [] });
-
-    const users = await User.find({
-      _id: { $ne: req.user.id },
-      goals: { $in: me.goals },
-    })
-      .select('name bio goals avatar')
-      .limit(20);
-
-    res.json({ success: true, data: users });
-  } catch (err) { next(err); }
-};
-
-/** GET /api/users/leaderboard — top users by habit streak */
+/**
+ * GET /api/users/leaderboard
+ * Weighted score = (streak × 0.4) + (xp/10 × 0.4) + (reputationScore × 0.2)
+ * Cached in Redis for 60 seconds.
+ */
 const getLeaderboard = async (req, res, next) => {
   try {
-    const topHabits = await Habit.aggregate([
-      { $group: { _id: '$userId', maxStreak: { $max: '$streak' } } },
-      { $sort: { maxStreak: -1 } },
-      { $limit: 10 },
-      {
-        $lookup: {
-          from: 'users',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'user',
-        },
-      },
-      { $unwind: '$user' },
-      {
-        $project: {
-          _id: 0,
-          userId: '$_id',
-          name: '$user.name',
-          avatar: '$user.avatar',
-          maxStreak: 1,
-        },
-      },
-    ]);
+    const CACHE_KEY = 'leaderboard:top50';
+    const cached = await cache.get(CACHE_KEY);
+    if (cached) return res.json({ success: true, data: cached, cached: true });
 
-    res.json({ success: true, data: topHabits });
+    const users = await AppUser.find({ isBanned: false })
+      .select('name avatar streak xp reputationScore goalCategory')
+      .sort({ streak: -1, xp: -1 })
+      .limit(50)
+      .lean();
+
+    // Weighted composite score
+    const ranked = users
+      .map(u => ({
+        ...u,
+        score: Math.round(
+          (u.streak * 0.4) +
+          ((u.xp / 10) * 0.4) +
+          (u.reputationScore * 0.2)
+        ),
+      }))
+      .sort((a, b) => b.score - a.score)
+      .map((u, i) => ({ ...u, rank: i + 1 }));
+
+    await cache.set(CACHE_KEY, ranked, cache.TTL.LEADERBOARD);
+    res.json({ success: true, data: ranked, cached: false });
   } catch (err) { next(err); }
 };
 
-module.exports = { getSimilarUsers, getLeaderboard };
+module.exports = { getLeaderboard };

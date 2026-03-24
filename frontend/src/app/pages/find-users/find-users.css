@@ -133,3 +133,14 @@
   .tab-badge { display: none; }
   .pending-actions { flex-direction: column; }
 }
+
+/* Message button on connected users */
+.card-action { display: flex; flex-direction: column; gap: .4rem; align-items: stretch; }
+.btn-msg {
+  display: block; text-align: center; text-decoration: none;
+  background: linear-gradient(135deg,#0d0d1a,#1a1a3e);
+  color: #00f5d4; border: 1px solid rgba(0,245,212,.35);
+  padding: .4rem .85rem; border-radius: 8px; font-size: .78rem; font-weight: 600;
+  transition: box-shadow .2s;
+}
+.btn-msg:hover { box-shadow: 0 0 10px rgba(0,245,212,.4); }

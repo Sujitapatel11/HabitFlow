@@ -31,8 +31,7 @@ export class Habits implements OnInit {
   ) {}
 
   ngOnInit() {
-    const userId = this.auth.currentUser()?._id;
-    this.habitService.getHabits(userId).subscribe({
+    this.habitService.getHabits().subscribe({
       next: (res) => { this.habits.set(res.data); this.loading.set(false); },
       error: () => { this.error.set('Failed to load habits'); this.loading.set(false); },
     });
@@ -41,8 +40,11 @@ export class Habits implements OnInit {
   submit() {
     if (!this.form.name?.trim()) { this.error.set('Name required'); return; }
     this.submitting.set(true);
-    const userId = this.auth.currentUser()?._id;
-    this.habitService.createHabit({ ...this.form, userId } as any).subscribe({
+    this.habitService.createHabit({
+      name: this.form.name,
+      description: this.form.description,
+      category: this.form.category,
+    }).subscribe({
       next: (res) => {
         this.habits.update(list => [res.data, ...list]);
         this.form = { name: '', description: '', category: 'Other' };
@@ -54,30 +56,29 @@ export class Habits implements OnInit {
   }
 
   toggle(habit: Habit) {
-    const completing = !habit.completed;
-    if (completing) this.completingId.set(habit._id);
-
-    const authorName = this.auth.currentUser()?.name || 'Someone';
-    this.habitService.updateHabit(habit._id, { completed: completing, authorName } as any).subscribe({
-      next: (res) => {
-        this.habits.update(list => list.map(h => h._id === habit._id ? res.data : h));
-
-        if (completing) {
-          // XP: base 10 + streak bonus
-          const xp = 10 + Math.min(res.data.streak * 2, 20);
-          this.gameSvc.addXP(xp);
+    if (!habit.completed) {
+      // Complete — server calculates XP and streak
+      this.completingId.set(habit._id);
+      this.habitService.completeHabit(habit._id).subscribe({
+        next: (res) => {
+          this.habits.update(list => list.map(h => h._id === habit._id ? res.data : h));
+          // Use server-returned XP — never calculate on client
+          this.gameSvc.addXP(res.xpGained);
           this.launchConfetti();
-
-          // Check badges
           const all = this.habits();
           const completedCount = all.filter(h => h.completed).length;
-          const maxStreak = Math.max(...all.map(h => h.streak));
+          const maxStreak = Math.max(...all.map(h => h.streak), 0);
           this.gameSvc.checkBadges(completedCount, maxStreak, false);
-
           setTimeout(() => this.completingId.set(null), 800);
-        }
-      },
-    });
+        },
+        error: (err) => { this.error.set(err.error?.message || 'Failed'); this.completingId.set(null); },
+      });
+    } else {
+      this.habitService.undoHabit(habit._id).subscribe({
+        next: (res) => this.habits.update(list => list.map(h => h._id === habit._id ? res.data : h)),
+        error: (err) => this.error.set(err.error?.message || 'Failed'),
+      });
+    }
   }
 
   delete(id: string) {

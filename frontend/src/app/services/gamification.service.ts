@@ -17,22 +17,22 @@ export interface PlayerStats {
 }
 
 const LEVELS = [
-  { min: 0,   name: 'Beginner',   icon: '🌱' },
-  { min: 100, name: 'Explorer',   icon: '🚀' },
-  { min: 250, name: 'Achiever',   icon: '⚡' },
-  { min: 500, name: 'Pro',        icon: '🔥' },
-  { min: 900, name: 'Master',     icon: '💎' },
-  { min: 1500,name: 'Legend',     icon: '👑' },
+  { min: 0,    name: 'Space Cadet',  icon: '🛸' },
+  { min: 100,  name: 'Pilot',        icon: '🚀' },
+  { min: 250,  name: 'Commander',    icon: '⚡' },
+  { min: 500,  name: 'Admiral',      icon: '🌌' },
+  { min: 900,  name: 'Legend',       icon: '💫' },
+  { min: 1500, name: 'Galactic God', icon: '🤖' },
 ];
 
 const BADGE_DEFS = [
-  { id: 'first_habit',   name: 'First Step',    icon: '🎯', description: 'Complete your first habit' },
-  { id: 'streak_3',      name: 'On a Roll',     icon: '🔥', description: '3-day streak' },
-  { id: 'streak_7',      name: 'Week Warrior',  icon: '⚔️', description: '7-day streak' },
-  { id: 'streak_30',     name: 'Iron Will',     icon: '💪', description: '30-day streak' },
-  { id: 'habits_5',      name: 'Habit Builder', icon: '🏗️', description: 'Complete 5 habits' },
-  { id: 'habits_20',     name: 'Habit Master',  icon: '🏆', description: 'Complete 20 habits' },
-  { id: 'social',        name: 'Social Butterfly', icon: '🦋', description: 'Make your first connection' },
+  { id: 'first_habit', name: 'First Launch',    icon: '🛸', description: 'Complete your first habit' },
+  { id: 'streak_3',    name: 'Orbit Locked',    icon: '🔥', description: '3-day streak' },
+  { id: 'streak_7',    name: 'Warp Speed',      icon: '⚡', description: '7-day streak' },
+  { id: 'streak_30',   name: 'Iron Protocol',   icon: '🤖', description: '30-day streak' },
+  { id: 'habits_5',    name: 'System Builder',  icon: '🏗️', description: 'Complete 5 habits' },
+  { id: 'habits_20',   name: 'Cyber Master',    icon: '💎', description: 'Complete 20 habits' },
+  { id: 'social',      name: 'Neural Link',     icon: '🔗', description: 'Make your first connection' },
 ];
 
 @Injectable({ providedIn: 'root' })
@@ -56,10 +56,7 @@ export class GamificationService {
 
     const check = (id: string, condition: boolean) => {
       const b = s.badges.find(b => b.id === id);
-      if (b && !b.earned && condition) {
-        b.earned = true;
-        earned = { ...b };
-      }
+      if (b && !b.earned && condition) { b.earned = true; earned = { ...b }; }
     };
 
     check('first_habit', completedCount >= 1);
@@ -97,12 +94,19 @@ export class GamificationService {
 
   private load(): PlayerStats {
     const saved = localStorage.getItem('hf_gamification');
-    if (saved) return JSON.parse(saved);
-    const s: PlayerStats = {
-      xp: 0, level: 1, levelName: '🌱 Beginner', xpForNext: 100,
+    if (saved) {
+      // migrate old badge names to new space theme
+      const parsed = JSON.parse(saved);
+      parsed.badges = BADGE_DEFS.map(def => {
+        const existing = parsed.badges?.find((b: Badge) => b.id === def.id);
+        return { ...def, earned: existing?.earned ?? false };
+      });
+      return parsed;
+    }
+    return {
+      xp: 0, level: 1, levelName: '🛸 Space Cadet', xpForNext: 100,
       badges: BADGE_DEFS.map(b => ({ ...b, earned: false })),
     };
-    return s;
   }
 
   private save(s: PlayerStats) {

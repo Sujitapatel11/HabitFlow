@@ -5,6 +5,7 @@ export interface AppUser {
   goalCategory: string;
   bio: string;
   streak: number;
+  avatar?: string;
   createdAt: string;
 }
 

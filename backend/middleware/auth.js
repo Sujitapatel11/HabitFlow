@@ -1,22 +1,44 @@
-const jwt = require('jsonwebtoken');
+const { verifyAccess } = require('../services/tokenService');
+const logger = require('../services/logger');
 
 /**
- * Protect middleware — verifies JWT and attaches user to req.
+ * protect — reads JWT from HTTP-only cookie (hf_access).
+ * Falls back to Authorization: Bearer header for API clients / mobile.
+ * Attaches req.user = { sub, email } on success.
  */
 const protect = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Not authorized' });
-  }
-
-  const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    // 1. Cookie (browser)
+    let token = req.cookies?.hf_access;
+
+    // 2. Bearer header fallback (Postman / mobile)
+    if (!token) {
+      const auth = req.headers.authorization;
+      if (auth?.startsWith('Bearer ')) token = auth.split(' ')[1];
+    }
+
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
+    const decoded = verifyAccess(token);
+    req.user = decoded; // { sub: userId, email, iat, exp }
     next();
-  } catch {
-    res.status(401).json({ success: false, message: 'Token invalid or expired' });
+  } catch (err) {
+    logger.warn(`[Auth] Token rejected: ${err.message} — ${req.ip}`);
+    return res.status(401).json({ success: false, message: 'Token invalid or expired' });
   }
 };
 
-module.exports = { protect };
+/**
+ * requireOwner(paramField) — ensures req.user.sub matches a route param.
+ * Usage: router.put('/:userId/...', protect, requireOwner('userId'), handler)
+ */
+const requireOwner = (paramField = 'userId') => (req, res, next) => {
+  if (req.user.sub !== req.params[paramField]) {
+    return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
+  next();
+};
+
+module.exports = { protect, requireOwner };

@@ -33,8 +33,7 @@ export class Contracts implements OnInit {
   ) {}
 
   ngOnInit() {
-    const user = this.auth.currentUser()!;
-    this.habitSvc.getHabits(user._id).subscribe({
+    this.habitSvc.getHabits().subscribe({
       next: (res) => this.myHabits.set(res.data),
     });
     this.loadContracts();
@@ -58,7 +57,6 @@ export class Contracts implements OnInit {
     if (!habit) { this.error.set('Select a habit'); return; }
     this.submitting.set(true);
     this.contractSvc.createContract({
-      userId: user._id, userName: user.name,
       habitId: habit._id, habitName: habit.name, category: habit.category,
       durationDays: this.form.durationDays, stakePoints: this.form.stakePoints,
     }).subscribe({

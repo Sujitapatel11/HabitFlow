@@ -134,6 +134,7 @@
                 </div>
                 <div class="card-action">
                   <button class="btn-connected" disabled>✓ Connected</button>
+                  <a [routerLink]="['/chat']" [queryParams]="{with: conn.user?._id}" class="btn-msg">💬 Message</a>
                 </div>
               </div>
             }

@@ -3,33 +3,52 @@ const bcrypt = require('bcryptjs');
 
 const appUserSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true, maxlength: 60 },
+    name:  { type: String, required: true, trim: true, maxlength: 60 },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, minlength: 6 },
+    password: { type: String, required: true, minlength: 6, select: false },
     goalCategory: {
       type: String,
-      enum: ['Coding', 'Fitness', 'Reading', 'Studying', 'Mindfulness', 'Nutrition', 'Other'],
+      enum: ['Coding','Fitness','Reading','Studying','Mindfulness','Nutrition','Other'],
       default: 'Other',
     },
-    bio: { type: String, default: '', maxlength: 200 },
-    streak: { type: Number, default: 0 },
-    resetOtp:        { type: String, default: null },
-    resetOtpExpiry:  { type: Date,   default: null },
+    bio:    { type: String, default: '', maxlength: 200 },
+    streak: { type: Number, default: 0, min: 0 },
+    xp:     { type: Number, default: 0, min: 0 },  // server-authoritative, never set by client
+    avatar: { type: String, default: '' },
+    // Reputation score for leaderboard weighting (0–100)
+    reputationScore: { type: Number, default: 50, min: 0, max: 100 },
+    // OTP fields
+    resetOtp:       { type: String, default: null, select: false },
+    resetOtpExpiry: { type: Date,   default: null, select: false },
+    // Abuse control
+    isBanned:  { type: Boolean, default: false },
+    banReason: { type: String, default: '' },
   },
   { timestamps: true }
 );
 
 appUserSchema.index({ goalCategory: 1 });
+appUserSchema.index({ streak: -1 });
+appUserSchema.index({ xp: -1 });
+appUserSchema.index({ reputationScore: -1 });
 
 // Hash password before save
 appUserSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
-  this.password = await bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 12); // bumped to 12 rounds
 });
 
-// Compare password helper
 appUserSchema.methods.matchPassword = function (plain) {
   return bcrypt.compare(plain, this.password);
+};
+
+// Never leak password/OTP fields in JSON responses
+appUserSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  delete obj.resetOtp;
+  delete obj.resetOtpExpiry;
+  return obj;
 };
 
 module.exports = mongoose.model('AppUser', appUserSchema);

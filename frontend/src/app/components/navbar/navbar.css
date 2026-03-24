@@ -32,7 +32,38 @@
 }
 .nav-links a:hover, .nav-links a.active { color: #6c63ff; }
 
+/* Chat unread badge in nav */
+.chat-link { position: relative; display: inline-flex; align-items: center; gap: .3rem; }
+.chat-badge {
+  background: #6c63ff; color: #fff; font-size: .6rem; font-weight: 800;
+  min-width: 16px; height: 16px; border-radius: 99px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 3px;
+  box-shadow: 0 0 6px rgba(108,99,255,.6);
+}
+
 .nav-right { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+
+/* Avatar in navbar */
+.avatar-btn { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
+.nav-avatar {
+  width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
+  border: 2px solid transparent;
+  background: linear-gradient(#fff,#fff) padding-box,
+              linear-gradient(135deg,#6c63ff,#00f5d4) border-box;
+  box-shadow: 0 0 8px rgba(108,99,255,.35);
+  transition: box-shadow .2s;
+}
+.nav-avatar:hover { box-shadow: 0 0 14px rgba(108,99,255,.6); }
+.nav-avatar-letter {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #6c63ff, #00f5d4);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: #fff; font-size: .9rem;
+  box-shadow: 0 0 8px rgba(108,99,255,.35);
+  transition: box-shadow .2s;
+}
+.nav-avatar-letter:hover { box-shadow: 0 0 14px rgba(108,99,255,.6); }
 
 .user-info { display: flex; align-items: center; gap: 0.5rem; }
 .user-name { font-size: .82rem; font-weight: 600; color: #374151; }

@@ -1,10 +1,11 @@
 import { Component, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { PeopleService } from '../../services/people.service';
 import { AppUser, Connection, PendingRequest } from '../../models/app-user.model';
 
 @Component({
   selector: 'app-find-users',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './find-users.html',
   styleUrl: './find-users.css',
 })

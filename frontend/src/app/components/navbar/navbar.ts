@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../core/auth.service';
+import { ChatService } from '../../services/chat.service';
 
 @Component({
   selector: 'app-navbar',
@@ -9,11 +10,22 @@ import { AuthService } from '../../core/auth.service';
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
-export class Navbar {
+export class Navbar implements OnInit {
   menuOpen = signal(false);
   showNotifs = signal(false);
 
-  constructor(public notifService: NotificationService, public auth: AuthService) {}
+  constructor(
+    public notifService: NotificationService,
+    public auth: AuthService,
+    public chatSvc: ChatService,
+  ) {}
+
+  ngOnInit() {
+    if (this.auth.isLoggedIn()) {
+      this.chatSvc.connect();
+      this.chatSvc.loadThreads();
+    }
+  }
 
   toggleNotifs() {
     this.showNotifs.update(v => !v);

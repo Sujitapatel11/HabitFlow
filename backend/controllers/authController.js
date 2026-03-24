@@ -1,26 +1,40 @@
+const crypto = require('crypto');
 const AppUser = require('../models/AppUser');
+const RefreshToken = require('../models/RefreshToken');
+const { setTokenCookies, clearTokenCookies, verifyRefresh, signAccess } = require('../services/tokenService');
 const { sendOtpEmail } = require('../services/emailService');
+const logger = require('../services/logger');
 
-// Generate 6-digit OTP
 const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
+const hashToken  = (t) => crypto.createHash('sha256').update(t).digest('hex');
+
+const safeUser = (u) => ({
+  _id: u._id, name: u.name, email: u.email,
+  goalCategory: u.goalCategory, bio: u.bio,
+  streak: u.streak, avatar: u.avatar, createdAt: u.createdAt,
+});
 
 /** POST /api/auth/register */
 const register = async (req, res, next) => {
   try {
+    // req.body already validated + sanitized by Joi middleware
     const { name, email, password, goalCategory, bio } = req.body;
-    if (!name?.trim() || !email?.trim() || !password)
-      return res.status(400).json({ success: false, message: 'Name, email and password are required' });
-    if (password.length < 6)
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
 
-    const exists = await AppUser.findOne({ email: email.toLowerCase().trim() });
+    const exists = await AppUser.findOne({ email });
     if (exists)
-      return res.status(400).json({ success: false, message: 'Email already registered. Please log in.' });
+      return res.status(400).json({ success: false, message: 'Email already registered' });
 
-    const user = await AppUser.create({ name: name.trim(), email, password, goalCategory: goalCategory || 'Other', bio: bio || '' });
+    const user = await AppUser.create({ name, email, password, goalCategory, bio });
 
-    const safe = { _id: user._id, name: user.name, email: user.email, goalCategory: user.goalCategory, bio: user.bio, streak: user.streak, createdAt: user.createdAt };
-    res.status(201).json({ success: true, data: safe });
+    const { refresh } = setTokenCookies(res, user._id.toString(), user.email);
+    await RefreshToken.create({
+      userId: user._id,
+      tokenHash: hashToken(refresh),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    logger.info(`[Auth] Registered: ${email}`);
+    res.status(201).json({ success: true, data: safeUser(user) });
   } catch (err) { next(err); }
 };
 
@@ -28,19 +42,70 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ success: false, message: 'Email and password are required' });
 
-    const user = await AppUser.findOne({ email: email.toLowerCase().trim() });
+    const user = await AppUser.findOne({ email });
     if (!user)
-      return res.status(401).json({ success: false, message: 'No account found with that email' });
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
     const match = await user.matchPassword(password);
     if (!match)
-      return res.status(401).json({ success: false, message: 'Incorrect password' });
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
-    const safe = { _id: user._id, name: user.name, email: user.email, goalCategory: user.goalCategory, bio: user.bio, streak: user.streak, createdAt: user.createdAt };
-    res.json({ success: true, data: safe });
+    const { refresh } = setTokenCookies(res, user._id.toString(), user.email);
+    await RefreshToken.create({
+      userId: user._id,
+      tokenHash: hashToken(refresh),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    logger.info(`[Auth] Login: ${email} from ${req.ip}`);
+    res.json({ success: true, data: safeUser(user) });
+  } catch (err) { next(err); }
+};
+
+/** POST /api/auth/refresh — rotate refresh token */
+const refresh = async (req, res, next) => {
+  try {
+    const token = req.cookies?.hf_refresh;
+    if (!token)
+      return res.status(401).json({ success: false, message: 'No refresh token' });
+
+    let decoded;
+    try { decoded = verifyRefresh(token); }
+    catch { return res.status(401).json({ success: false, message: 'Refresh token invalid or expired' }); }
+
+    const hash = hashToken(token);
+    const stored = await RefreshToken.findOne({ tokenHash: hash });
+    if (!stored)
+      return res.status(401).json({ success: false, message: 'Token reuse detected' });
+
+    // Rotate: delete old, issue new
+    await RefreshToken.deleteOne({ _id: stored._id });
+
+    const user = await AppUser.findById(decoded.sub).lean();
+    if (!user)
+      return res.status(401).json({ success: false, message: 'User not found' });
+
+    const { refresh: newRefresh } = setTokenCookies(res, user._id.toString(), user.email);
+    await RefreshToken.create({
+      userId: user._id,
+      tokenHash: hashToken(newRefresh),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    res.json({ success: true, data: safeUser(user) });
+  } catch (err) { next(err); }
+};
+
+/** POST /api/auth/logout */
+const logout = async (req, res, next) => {
+  try {
+    const token = req.cookies?.hf_refresh;
+    if (token) {
+      await RefreshToken.deleteOne({ tokenHash: hashToken(token) });
+    }
+    clearTokenCookies(res);
+    res.json({ success: true, message: 'Logged out' });
   } catch (err) { next(err); }
 };
 
@@ -48,22 +113,18 @@ const login = async (req, res, next) => {
 const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
-
-    const user = await AppUser.findOne({ email: email.toLowerCase().trim() });
-    if (!user)
-      return res.status(404).json({ success: false, message: 'No account found with that email' });
+    const user = await AppUser.findOne({ email });
+    // Always respond the same to prevent email enumeration
+    if (!user) return res.json({ success: true, message: 'If that email exists, an OTP was sent' });
 
     const otp = generateOtp();
-    const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
     user.resetOtp = otp;
-    user.resetOtpExpiry = expiry;
+    user.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save({ validateBeforeSave: false });
 
     await sendOtpEmail(user.email, otp, user.name);
-
-    res.json({ success: true, message: 'OTP sent to your email' });
+    logger.info(`[Auth] OTP sent to ${email}`);
+    res.json({ success: true, message: 'If that email exists, an OTP was sent' });
   } catch (err) { next(err); }
 };
 
@@ -71,17 +132,9 @@ const forgotPassword = async (req, res, next) => {
 const verifyOtp = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
-    if (!email || !otp) return res.status(400).json({ success: false, message: 'Email and OTP required' });
-
-    const user = await AppUser.findOne({ email: email.toLowerCase().trim() });
-    if (!user || !user.resetOtp)
+    const user = await AppUser.findOne({ email });
+    if (!user || !user.resetOtp || user.resetOtp !== otp || new Date() > user.resetOtpExpiry)
       return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
-
-    if (user.resetOtp !== otp)
-      return res.status(400).json({ success: false, message: 'Incorrect OTP' });
-
-    if (new Date() > user.resetOtpExpiry)
-      return res.status(400).json({ success: false, message: 'OTP has expired. Request a new one.' });
 
     res.json({ success: true, message: 'OTP verified' });
   } catch (err) { next(err); }
@@ -91,29 +144,22 @@ const verifyOtp = async (req, res, next) => {
 const resetPassword = async (req, res, next) => {
   try {
     const { email, otp, newPassword } = req.body;
-    if (!email || !otp || !newPassword)
-      return res.status(400).json({ success: false, message: 'Email, OTP and new password required' });
-
-    if (newPassword.length < 6)
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
-
-    const user = await AppUser.findOne({ email: email.toLowerCase().trim() });
-    if (!user || !user.resetOtp)
+    const user = await AppUser.findOne({ email });
+    if (!user || !user.resetOtp || user.resetOtp !== otp || new Date() > user.resetOtpExpiry)
       return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
 
-    if (user.resetOtp !== otp)
-      return res.status(400).json({ success: false, message: 'Incorrect OTP' });
-
-    if (new Date() > user.resetOtpExpiry)
-      return res.status(400).json({ success: false, message: 'OTP has expired. Request a new one.' });
-
-    user.password = newPassword; // pre-save hook will hash it
+    user.password = newPassword;
     user.resetOtp = null;
     user.resetOtpExpiry = null;
     await user.save();
 
-    res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
+    // Revoke all existing refresh tokens for this user
+    await RefreshToken.deleteMany({ userId: user._id });
+    clearTokenCookies(res);
+
+    logger.info(`[Auth] Password reset: ${email}`);
+    res.json({ success: true, message: 'Password reset. Please log in again.' });
   } catch (err) { next(err); }
 };
 
-module.exports = { register, login, forgotPassword, verifyOtp, resetPassword };
+module.exports = { register, login, refresh, logout, forgotPassword, verifyOtp, resetPassword };

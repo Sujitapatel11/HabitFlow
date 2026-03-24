@@ -49,15 +49,16 @@ export class HabitList implements OnInit {
   }
 
   toggleComplete(habit: Habit): void {
-    this.habitService
-      .updateHabit(habit._id, { completed: !habit.completed })
-      .subscribe({
-        next: (res) => {
-          this.habits.update((list) =>
-            list.map((h) => (h._id === habit._id ? res.data : h))
-          );
-        },
-      });
+    const action = habit.completed
+      ? this.habitService.undoHabit(habit._id)
+      : this.habitService.completeHabit(habit._id);
+    action.subscribe({
+      next: (res) => {
+        this.habits.update((list) =>
+          list.map((h) => (h._id === habit._id ? res.data : h))
+        );
+      },
+    });
   }
 
   deleteHabit(id: string): void {

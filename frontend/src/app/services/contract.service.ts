@@ -10,17 +10,18 @@ export class ContractService {
   private api = `${environment.apiUrl}/contracts`;
   constructor(private http: HttpClient) {}
 
-  getMyContracts(userId: string) {
-    return this.http.get<ApiRes<Contract[]>>(`${this.api}?userId=${userId}`);
+  // userId/userName now come from JWT on the server
+  getMyContracts(_userId?: string) {
+    return this.http.get<ApiRes<Contract[]>>(this.api);
   }
 
-  getCommunityFeed(userId: string) {
-    return this.http.get<ApiRes<Contract[]>>(`${this.api}/feed?userId=${userId}`);
+  getCommunityFeed(_userId?: string) {
+    return this.http.get<ApiRes<Contract[]>>(`${this.api}/feed`);
   }
 
   createContract(data: {
-    userId: string; userName: string; habitId: string;
-    habitName: string; category: string; durationDays: number; stakePoints: number;
+    habitId: string; habitName: string; category: string;
+    durationDays: number; stakePoints: number;
   }) {
     return this.http.post<ApiRes<Contract>>(this.api, data);
   }
@@ -29,8 +30,9 @@ export class ContractService {
     return this.http.post<ApiRes<Contract>>(`${this.api}/${contractId}/checkin`, { note });
   }
 
-  witnessVote(contractId: string, userId: string, userName: string, vote: 'legit' | 'doubt') {
-    return this.http.post<ApiRes<Contract>>(`${this.api}/${contractId}/witness`, { userId, userName, vote });
+  // vote only — userId/userName resolved server-side from JWT
+  witnessVote(contractId: string, _userId: string, _userName: string, vote: 'legit' | 'doubt') {
+    return this.http.post<ApiRes<Contract>>(`${this.api}/${contractId}/witness`, { vote });
   }
 
   breakContract(contractId: string) {
