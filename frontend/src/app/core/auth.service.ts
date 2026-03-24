@@ -19,7 +19,7 @@ export class AuthService {
   register(data: { name: string; email: string; password: string; goalCategory: string; bio?: string }) {
     return this.http.post<{ success: boolean; data: AppUser }>(
       `${this.api}/register`, data, { withCredentials: true }
-    ).pipe(tap(res => this.saveSession(res.data)));
+    );
   }
 
   login(email: string, password: string) {
@@ -47,19 +47,27 @@ export class AuthService {
   }
 
   forgotPassword(email: string) {
-    return this.http.post<{ success: boolean; message: string }>(`${this.api}/forgot-password`, { email });
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.api}/forgot-password`, { email }, { withCredentials: true }
+    );
   }
 
   verifyOtp(email: string, otp: string) {
-    return this.http.post<{ success: boolean; message: string }>(`${this.api}/verify-otp`, { email, otp });
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.api}/verify-otp`, { email, otp }, { withCredentials: true }
+    );
   }
 
   resetPassword(email: string, otp: string, newPassword: string) {
-    return this.http.post<{ success: boolean; message: string }>(`${this.api}/reset-password`, { email, otp, newPassword });
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.api}/reset-password`, { email, otp, newPassword }, { withCredentials: true }
+    );
   }
 
   resendVerification(email: string) {
-    return this.http.post<{ success: boolean; message: string }>(`${this.api}/resend-verification`, { email });
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.api}/resend-verification`, { email }, { withCredentials: true }
+    );
   }
 
   uploadAvatar(userId: string, file: File) {

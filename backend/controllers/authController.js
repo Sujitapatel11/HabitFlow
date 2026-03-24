@@ -96,6 +96,13 @@ const login = async (req, res, next) => {
       });
     }
 
+    // Legacy accounts created before email verification was added have no verifyToken
+    // and isVerified=false — auto-verify them so they aren't permanently locked out
+    if (!user.isVerified && !user.verifyToken) {
+      user.isVerified = true;
+      await user.save({ validateBeforeSave: false });
+    }
+
     if (!user.isVerified)
       return res.status(403).json({ success: false, message: 'Please verify your email before logging in.' });
 

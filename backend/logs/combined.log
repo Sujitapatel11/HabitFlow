@@ -246,3 +246,11 @@
 2026-03-24 21:25:39 [HTTP] ::1 - - [24/Mar/2026:15:55:39 +0000] "GET /api/connections/my-connections?userId=69b6b11cc6d8bfd97a110dbd HTTP/1.1" 304 - "http://localhost:4200/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
 2026-03-24 21:25:52 [HTTP] ::1 - - [24/Mar/2026:15:55:52 +0000] "POST /api/upload/avatar HTTP/1.1" 401 47 "http://localhost:4200/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
 2026-03-24 21:25:54 [HTTP] ::1 - - [24/Mar/2026:15:55:54 +0000] "POST /api/upload/avatar HTTP/1.1" 401 47 "http://localhost:4200/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 21:34:53 [HTTP] ::1 - - [24/Mar/2026:16:04:53 +0000] "GET /api/messages/threads HTTP/1.1" 401 47 "http://localhost:4200/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 21:40:18 [HTTP] ::1 - - [24/Mar/2026:16:10:18 +0000] "POST /api/upload/avatar HTTP/1.1" 401 47 "http://localhost:4200/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 21:40:22 [HTTP] ::1 - - [24/Mar/2026:16:10:22 +0000] "PUT /api/app-users/69b6b11cc6d8bfd97a110dbd HTTP/1.1" 401 47 "http://localhost:4200/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"
+2026-03-24 21:49:34 [WARN] [Redis] No REDIS_URL — using in-memory shim (dev only, NOT for production)
+2026-03-24 21:49:34 [WARN] [Queue] No Redis — using inline job execution (dev only)
+2026-03-24 21:49:35 [INFO] MongoDB connected
+2026-03-24 21:49:35 [WARN] [Socket.io] No Redis — adapter not attached (single-instance dev mode)
+2026-03-24 21:49:35 [INFO] Server running on port 3001

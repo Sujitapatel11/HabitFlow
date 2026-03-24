@@ -126,7 +126,7 @@ export class Login implements OnInit {
     }
     this.loading.set(true); this.error.set('');
     this.auth.login(this.email, this.password).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => { this.loading.set(false); this.router.navigate(['/dashboard']); },
       error: (err) => {
         this.error.set(err.error?.message || 'Login failed');
         this.loading.set(false); this.triggerShake();
